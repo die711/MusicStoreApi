@@ -11,7 +11,7 @@ public class ConcertRepository : RepositoryBase<Concert>, IConcertRepository
     }
 
 
-    public async Task<Concert?> FindByIdAsync(long id)
+    public override async Task<Concert?> FindByIdAsync(long id)
     {
         return await Context.Set<Concert>()
             .Include(p => p.Genre)

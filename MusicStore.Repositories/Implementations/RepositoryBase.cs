@@ -59,7 +59,7 @@ public class RepositoryBase<TEntity> : IRepositoryBase<TEntity> where TEntity : 
         return entity.Id;
     }
 
-    public async Task<TEntity?> FindByIdAsync(long id)
+    public virtual async Task<TEntity?> FindByIdAsync(long id)
     {
         return await Context.Set<TEntity>().FindAsync(id);
     }
