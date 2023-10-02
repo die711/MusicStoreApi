@@ -120,8 +120,24 @@ public class GenreService : IGenreService
         return response;
     }
 
-    public Task<BaseResponse> DeleteAsync(long id)
+    public async Task<BaseResponse> DeleteAsync(long id)
     {
-        throw new NotImplementedException();
+        var response = new BaseResponse();
+
+        try
+        {
+            await _repository.DeleteAsync(id);
+            response.Success = true;
+
+        }
+        catch (Exception ex)
+        {
+            _logger.LogCritical(ex, "Error al eliminar generos {Message}", ex.Message);
+            response.Success = false;
+            response.ErrorMessage = ex.Message;
+        }
+
+        return response;
+
     }
 }

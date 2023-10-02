@@ -46,6 +46,12 @@ public class GenreController : ControllerBase
     {
         return Ok(await _service.UpdateAsync(id, request));
     }
-    
-    
+
+    [HttpDelete("{id:long}")]
+    public async Task<IActionResult> Delete(long id)
+    {
+        return Ok(await _service.DeleteAsync(id));
+    }
+
+
 }
