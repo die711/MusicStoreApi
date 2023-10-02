@@ -7,39 +7,78 @@ namespace MusicStore.Repositories.Implementations;
 
 public class RepositoryBase<TEntity> : IRepositoryBase<TEntity> where TEntity : EntityBase
 {
+    protected readonly DbContext Context;
 
     public RepositoryBase(DbContext context)
     {
-        
-    }
-    
-    public Task<ICollection<TEntity>> ListAsync(Expression<Func<TEntity, bool>> predicate)
-    {
-        throw new NotImplementedException();
+        Context = context;
     }
 
-    public Task<(ICollection<TInfo> Collection, int Total)> ListAsync<TInfo, TKey>(Expression<Func<TEntity, bool>> predicate, Expression<Func<TEntity, TInfo>> selector, Expression<Func<TEntity, TKey>> orderBy, int page, int rows)
+    public async Task<ICollection<TEntity>> ListAsync(Expression<Func<TEntity, bool>> predicate)
     {
-        throw new NotImplementedException();
+        return await Context.Set<TEntity>().AsNoTracking().Where(predicate).ToListAsync();
     }
 
-    public Task<ICollection<TInfo>> ListAsync<TInfo>(Expression<Func<TEntity, bool>> predicate, Expression<Func<TEntity, TInfo>> selector)
+    public async Task<(ICollection<TInfo> Collection, int Total)> ListAsync<TInfo, TKey>(
+        Expression<Func<TEntity, bool>> predicate
+        , Expression<Func<TEntity, TInfo>> selector
+        , Expression<Func<TEntity, TKey>> orderBy
+        , int page, int rows)
     {
-        throw new NotImplementedException();
+        var collection = await Context.Set<TEntity>()
+            .Where(predicate)
+            .OrderBy(orderBy)
+            .Skip((page - 1) * rows)
+            .Take(rows)
+            .AsNoTracking()
+            .Select(selector)
+            .ToListAsync();
+
+        var total = await Context.Set<TEntity>()
+            .Where(predicate)
+            .CountAsync();
+
+        return (collection, total);
     }
 
-    public Task<long> AddAsync(TEntity entity)
+    public async Task<ICollection<TInfo>> ListAsync<TInfo>(Expression<Func<TEntity, bool>> predicate,
+        Expression<Func<TEntity, TInfo>> selector)
     {
-        throw new NotImplementedException();
+        return await Context.Set<TEntity>()
+            .Where(predicate)
+            .AsNoTracking()
+            .Select(selector)
+            .ToListAsync();
     }
 
-    public Task<TEntity?> FindByIdAsync(long id)
+    public async Task<long> AddAsync(TEntity entity)
     {
-        throw new NotImplementedException();
+        await Context.Set<TEntity>().AddAsync(entity);
+        await Context.SaveChangesAsync();
+
+        return entity.Id;
     }
 
-    public Task DeleteAsync(long id)
+    public async Task<TEntity?> FindByIdAsync(long id)
     {
-        throw new NotImplementedException();
+        return await Context.Set<TEntity>().FindAsync(id);
+    }
+
+    public async Task UpdateAsync()
+    {
+        await Context.SaveChangesAsync();
+    }
+
+    public async Task DeleteAsync(long id)
+    {
+        var entity = await FindByIdAsync(id);
+
+        if (entity != null)
+        {
+            entity.Status = false;
+            await UpdateAsync();
+        }
+        else
+            throw new InvalidOperationException($"No se encontro el registro con el Id {id}");
     }
 }
