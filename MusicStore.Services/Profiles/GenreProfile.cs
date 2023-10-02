@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using MusicStore.Dto.Request;
 using MusicStore.Dto.Response;
 using MusicStore.Entities;
 
@@ -9,6 +10,6 @@ public class GenreProfile : Profile
     public GenreProfile()
     {
         CreateMap<Genre, GenreDtoResponse>();
-        CreateMap<GenreDtoResponse, Genre>();
+        CreateMap<GenreDtoRequest, Genre>();
     }
 }
