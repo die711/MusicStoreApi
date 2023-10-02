@@ -28,20 +28,47 @@ public class ConcertService : IConcertService
 
         try
         {
-          //  var tupla = await _repository.ListAsync(filter, page, rows);
-
-
+            var tupla = await _repository.ListAsync(filter, page, rows);
+            response.Data = tupla.Collection.Select(v => _mapper.Map<ConcertDtoResponse>(v)).ToList();
+           // response.Data = _mapper.Map<ICollection<ConcertDtoResponse>>(tupla.Collection);
+            response.TotalPages = 15;
+            response.Success = true;
         }
 
         catch (Exception ex)
         {
-            
-            
+            _logger.LogError(ex, "Error al listar los conciertos {Message}", ex.Message);
+            response.ErrorMessage = "Error al listar los conciertos";
+            response.Success = false;
+        }
+        
+        return response;
+    }
+
+    
+    public async Task<BaseResponseGeneric<ConcertSingleDtoResponse>> FindByIdAsync(long id)
+    {
+        var response = new BaseResponseGeneric<ConcertSingleDtoResponse>();
+        try
+        {
+            var concert =await _repository.FindByIdAsync(id);
+
+            if (concert is null)
+            {
+                response.ErrorMessage = $"No se encontro el concierto con id {id}";
+                return response;
+            }
+
+            response.Data = _mapper.Map<ConcertSingleDtoResponse>(concert);
+            response.Success = true;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error al obtener el concierto");
+            response.ErrorMessage = "Error al obtener el concierto";
         }
 
-
         return response;
-
     }
 
     public async Task<BaseResponseGeneric<long>> AddAsync(ConcertDtoRequest request)

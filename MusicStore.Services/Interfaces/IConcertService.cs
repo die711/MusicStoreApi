@@ -6,5 +6,6 @@ namespace MusicStore.Services.Interfaces;
 public interface IConcertService
 {
     Task<BaseResponsePagination<ConcertDtoResponse>> ListAsync(string? filter, int page, int rows);
+    Task<BaseResponseGeneric<ConcertSingleDtoResponse>> FindByIdAsync(long id);
     Task<BaseResponseGeneric<long>> AddAsync(ConcertDtoRequest request);
 }
