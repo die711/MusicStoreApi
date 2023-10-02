@@ -25,10 +25,7 @@
 
     <ItemGroup>
       <ProjectReference Include="..\MusicStore.DataAccess\MusicStore.DataAccess.csproj" />
-    </ItemGroup>
-
-    <ItemGroup>
-      <Folder Include="Controllers\" />
+      <ProjectReference Include="..\MusicStore.Services\MusicStore.Services.csproj" />
     </ItemGroup>
 
 </Project>

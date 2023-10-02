@@ -1,5 +1,10 @@
 using Microsoft.EntityFrameworkCore;
 using MusicStore.DataAccess;
+using MusicStore.Repositories.Implementations;
+using MusicStore.Repositories.Interfaces;
+using MusicStore.Services.Implementations;
+using MusicStore.Services.Interfaces;
+using MusicStore.Services.Profiles;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -15,6 +20,14 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+builder.Services.AddAutoMapper(config =>
+{
+config.AddProfile<GenreProfile>();
+});
+
+builder.Services.AddTransient<IGenreRepository, GenreRepository>();
+
+builder.Services.AddTransient<IGenreService, GenreService>();
 
 
 var app = builder.Build();
