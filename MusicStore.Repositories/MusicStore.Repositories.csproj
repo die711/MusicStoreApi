@@ -6,4 +6,11 @@
         <Nullable>enable</Nullable>
     </PropertyGroup>
 
+    <ItemGroup>
+      <ProjectReference Include="..\MusicStore.DataAccess\MusicStore.DataAccess.csproj" />
+      <ProjectReference Include="..\MusicStore.Entities\MusicStore.Entities.csproj" />
+    </ItemGroup>
+
+   
+
 </Project>
