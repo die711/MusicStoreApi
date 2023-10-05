@@ -36,7 +36,6 @@ public class GenreService : IGenreService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error en listar generos {Message}", ex.Message);
-            response.Success = false;
             response.ErrorMessage = ex.Message;
         }
 
@@ -57,15 +56,13 @@ public class GenreService : IGenreService
                 response.ErrorMessage = "No se encontro el genero";
                 return response;
             }
-
-
+            
             response.Data = _mapper.Map<GenreDtoResponse>(entity);
             response.Success = true;
         }
         catch (Exception ex)
         {
             _logger.LogCritical(ex, "Error buscando genero con id {Message} ", ex.Message);
-            response.Success = false;
             response.ErrorMessage = "Error al buscar un genero";
         }
 
@@ -84,7 +81,6 @@ public class GenreService : IGenreService
         catch (Exception ex)
         {
             _logger.LogCritical(ex, "Error en generos {Message}", ex.Message);
-            response.Success = true;
             response.ErrorMessage = ex.Message;
         }
 
@@ -113,7 +109,6 @@ public class GenreService : IGenreService
         catch (Exception ex)
         {
             _logger.LogCritical("Error en Generos {Message}", ex.Message);
-            response.Success = false;
             response.ErrorMessage = ex.Message;
         }
 
@@ -133,7 +128,6 @@ public class GenreService : IGenreService
         catch (Exception ex)
         {
             _logger.LogCritical(ex, "Error al eliminar generos {Message}", ex.Message);
-            response.Success = false;
             response.ErrorMessage = ex.Message;
         }
 

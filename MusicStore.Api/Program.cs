@@ -23,6 +23,7 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddAutoMapper(config =>
 {
 config.AddProfile<GenreProfile>();
+config.AddProfile<ConcertProfile>();
 });
 
 builder.Services.AddTransient<IGenreRepository, GenreRepository>();

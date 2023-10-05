@@ -35,7 +35,10 @@ public class ConcertController : ControllerBase
     public async Task<IActionResult> Post(ConcertDtoRequest request)
     {
         var response = await _service.AddAsync(request);
-        return CreatedAtAction(nameof(FindById), new { id = response.Data }, request);
+        return CreatedAtAction(nameof(FindById), new
+        {
+            id = response.Data,
+        }, response);
     }
 
    

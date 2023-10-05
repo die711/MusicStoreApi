@@ -5,6 +5,7 @@ using MusicStore.Dto.Response;
 using MusicStore.Entities;
 using MusicStore.Repositories.Interfaces;
 using MusicStore.Services.Interfaces;
+using MusicStore.Services.Utils;
 
 namespace MusicStore.Services.Implementations;
 
@@ -28,10 +29,10 @@ public class ConcertService : IConcertService
 
         try
         {
-            var tupla = await _repository.ListAsync(filter, page, rows);
-            response.Data = tupla.Collection.Select(v => _mapper.Map<ConcertDtoResponse>(v)).ToList();
+            var tuple = await _repository.ListAsync(filter, page, rows);
+            response.Data = tuple.Collection.Select(v => _mapper.Map<ConcertDtoResponse>(v)).ToList();
            // response.Data = _mapper.Map<ICollection<ConcertDtoResponse>>(tupla.Collection);
-            response.TotalPages = 15;
+            response.TotalPages = Utilities.GetTotalPages(tuple.Total, rows);
             response.Success = true;
         }
 
@@ -78,7 +79,6 @@ public class ConcertService : IConcertService
         try
         {
             var concert = _mapper.Map<Concert>(request);
-
             await _repository.AddAsync(concert);
             response.Data = concert.Id;
             response.Success = true;
@@ -86,7 +86,7 @@ public class ConcertService : IConcertService
         catch(Exception ex)
         {
             _logger.LogError(ex, "Error al agregar el concierto {Message}", ex.Message);
-            response.Success = false;
+            response.ErrorMessage = "Error al agregar el concierto";
         }
 
         return response;
