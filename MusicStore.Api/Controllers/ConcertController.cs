@@ -24,16 +24,19 @@ public class ConcertController : ControllerBase
         return Ok(await _service.ListAsync(filter, page, rows));
     }
 
-    
-    // [HttpPost]
-    // public async Task<IActionResult> Add(ConcertDtoRequest request)
-    // {
-    //     var response = await _service.AddAsync(request);
-    //     return CreatedAtAction(nameof(GetById), new
-    //     {
-    //         id = response.Data,
-    //     }, response);
-    // }
+    [HttpGet("{id:long}")]
+    public async Task<IActionResult> FindById(long id)
+    {
+        var response = await _service.FindByIdAsync(id);
+        return response.Success ? Ok(response) : NotFound(response);
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> Post(ConcertDtoRequest request)
+    {
+        var response = await _service.AddAsync(request);
+        return CreatedAtAction(nameof(FindById), new { id = response.Data }, request);
+    }
 
    
 

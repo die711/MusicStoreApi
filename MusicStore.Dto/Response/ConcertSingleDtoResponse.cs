@@ -12,5 +12,5 @@ public class ConcertSingleDtoResponse
     public int TicketQuantity { get; set; } 
     public decimal UnitPrice { get; set; }
     public string Status { get; set; } = default!;
-    public GenreDtoResponse Gen { get; set; } = default!;
+    public GenreDtoResponse GenreDtoResponse { get; set; } = default!;
 }

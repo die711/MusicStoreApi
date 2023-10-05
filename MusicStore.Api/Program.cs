@@ -26,9 +26,10 @@ config.AddProfile<GenreProfile>();
 });
 
 builder.Services.AddTransient<IGenreRepository, GenreRepository>();
+builder.Services.AddTransient<IConcertRepository, ConcertRepository>();
 
 builder.Services.AddTransient<IGenreService, GenreService>();
-
+builder.Services.AddTransient<IConcertService, ConcertService>();
 
 var app = builder.Build();
 
