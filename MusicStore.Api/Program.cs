@@ -1,4 +1,5 @@
 using System.Diagnostics.Eventing.Reader;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using MusicStore.DataAccess;
 using MusicStore.Entities;
@@ -17,6 +18,25 @@ builder.Services.AddDbContext<MusicStoreDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("MusicStoreDb"));
 });
 
+//Aca se especifica la clase de usuario personalizado
+
+builder.Services.AddIdentity<MusicStoreUserIdentity, IdentityRole>(policies =>
+    {
+        policies.Password.RequireDigit = false;
+        policies.Password.RequireLowercase = false;
+        policies.Password.RequireUppercase = false;
+        policies.Password.RequireNonAlphanumeric = false;
+        policies.Password.RequiredLength = 5;
+
+        policies.User.RequireUniqueEmail = true;
+
+        //politicas de bloqueo
+        policies.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(15);
+        policies.Lockout.MaxFailedAccessAttempts = 3;
+        policies.Lockout.AllowedForNewUsers = true;
+    }).AddEntityFrameworkStores<MusicStoreDbContext>()
+    .AddDefaultTokenProviders();
+
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
@@ -27,8 +47,8 @@ builder.Services.Configure<AppSettings>(builder.Configuration);
 
 builder.Services.AddAutoMapper(config =>
 {
-config.AddProfile<GenreProfile>();
-config.AddProfile<ConcertProfile>();
+    config.AddProfile<GenreProfile>();
+    config.AddProfile<ConcertProfile>();
 });
 
 builder.Services.AddTransient<IGenreRepository, GenreRepository>();
