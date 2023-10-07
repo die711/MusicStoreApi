@@ -37,8 +37,12 @@ builder.Services.AddTransient<IConcertRepository, ConcertRepository>();
 builder.Services.AddTransient<IGenreService, GenreService>();
 builder.Services.AddTransient<IConcertService, ConcertService>();
 
+//builder.Services.AddTransient<IFileUploader, AzureBlobStorageUploader>();
+
 if (builder.Environment.IsDevelopment())
-    builder.Services.AddTransient<IFileUploader,FileUploader>();
+    builder.Services.AddTransient<IFileUploader, FileUploader>();
+else
+    builder.Services.AddTransient<IFileUploader, AzureBlobStorageUploader>();
 
 var app = builder.Build();
 
