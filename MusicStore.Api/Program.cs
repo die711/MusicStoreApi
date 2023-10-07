@@ -1,3 +1,4 @@
+using System.Diagnostics.Eventing.Reader;
 using Microsoft.EntityFrameworkCore;
 using MusicStore.DataAccess;
 using MusicStore.Entities;
@@ -21,6 +22,7 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+//Mapear el contenido del archivo appsettings .json en una clase
 builder.Services.Configure<AppSettings>(builder.Configuration);
 
 builder.Services.AddAutoMapper(config =>
@@ -34,6 +36,9 @@ builder.Services.AddTransient<IConcertRepository, ConcertRepository>();
 
 builder.Services.AddTransient<IGenreService, GenreService>();
 builder.Services.AddTransient<IConcertService, ConcertService>();
+
+if (builder.Environment.IsDevelopment())
+    builder.Services.AddTransient<IFileUploader,FileUploader>();
 
 var app = builder.Build();
 

@@ -14,12 +14,14 @@ public class ConcertService : IConcertService
     private readonly IConcertRepository _repository;
     private readonly ILogger<ConcertService> _logger;
     private readonly IMapper _mapper;
+    private readonly IFileUploader _fileUploader;
 
-    public ConcertService(IConcertRepository repository, ILogger<ConcertService> logger, IMapper mapper)
+    public ConcertService(IConcertRepository repository, ILogger<ConcertService> logger, IMapper mapper, IFileUploader fileUploader)
     {
         _repository = repository;
         _logger = logger;
         _mapper = mapper;
+        _fileUploader = fileUploader;
     }
     
     
@@ -79,6 +81,8 @@ public class ConcertService : IConcertService
         try
         {
             var concert = _mapper.Map<Concert>(request);
+            concert.ImageUrl = await _fileUploader.UploadFileAsync(request.Base64Image, request.FileName);
+            
             await _repository.AddAsync(concert);
             response.Data = concert.Id;
             response.Success = true;
