@@ -91,4 +91,72 @@ public class ConcertService : IConcertService
 
         return response;
     }
+
+
+    public async Task<BaseResponse> UpdateAsync(long id, ConcertDtoRequest request)
+    {
+        var response = new BaseResponse();
+
+        try
+        {
+            var concert = await _repository.FindByIdAsync(id);
+
+            if (concert == null)
+            {
+                response.ErrorMessage = "No se encontro el concierto";
+                return response;
+            }
+
+            _mapper.Map(request, concert);
+
+            await _repository.UpdateAsync();
+            response.Success = true;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error al actualizar el concierto {Message}", ex.Message);
+            response.ErrorMessage = "Error al actualizar el concierto";
+        }
+
+        return response;
+
+    }
+
+    public async Task<BaseResponse> DeleteAsync(long id)
+    {
+        var response = new BaseResponse();
+        try
+        {
+            await _repository.DeleteAsync(id);
+            response.Success = true;
+
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex,"Error al eliminar el concierto con el id {id}", id);
+            response.ErrorMessage = "Error al eliminar el concierto";
+        }
+
+        return response;
+    }
+
+    public async Task<BaseResponse> FinalizeAsync(long id)
+    {
+        var response = new BaseResponse();
+
+        try
+        {
+            await _repository.FinalizeAsync(id);
+            response.Success = true;
+        }
+        catch (Exception ex)
+        {
+            response.ErrorMessage = _logger.LogMessage(ex, nameof(FinalizeAsync));
+        }
+
+        return response;
+
+    }
+    
+    
 }

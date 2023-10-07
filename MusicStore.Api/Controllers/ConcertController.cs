@@ -41,6 +41,29 @@ public class ConcertController : ControllerBase
         }, response);
     }
 
+    [HttpPut("{id:long}")]
+    public async Task<IActionResult> Put(long id, ConcertDtoRequest request)
+    {
+        var response = await _service.UpdateAsync(id, request);
+        return Ok(response);
+    }
+
+    [HttpDelete("{id:long}")]
+    public async Task<IActionResult> Delete(long id)
+    {
+        var response = await _service.DeleteAsync(id);
+        return Ok(response);
+    }
+
+    [HttpPatch("{id:long}")]
+    public async Task<IActionResult> Patch(long id)
+    {
+        var response = await _service.FinalizeAsync(id);
+        return Ok(response);
+    }
+    
+    
+    
    
 
 

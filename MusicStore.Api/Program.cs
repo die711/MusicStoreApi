@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using MusicStore.DataAccess;
+using MusicStore.Entities;
 using MusicStore.Repositories.Implementations;
 using MusicStore.Repositories.Interfaces;
 using MusicStore.Services.Implementations;
@@ -19,6 +20,8 @@ builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+builder.Services.Configure<AppSettings>(builder.Configuration);
 
 builder.Services.AddAutoMapper(config =>
 {
