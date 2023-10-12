@@ -53,9 +53,11 @@ builder.Services.AddAutoMapper(config =>
 
 builder.Services.AddTransient<IGenreRepository, GenreRepository>();
 builder.Services.AddTransient<IConcertRepository, ConcertRepository>();
+builder.Services.AddTransient<ICustomerRepository, CustomerRepository>();
 
 builder.Services.AddTransient<IGenreService, GenreService>();
 builder.Services.AddTransient<IConcertService, ConcertService>();
+builder.Services.AddTransient<IUserService, UserService>();
 
 //builder.Services.AddTransient<IFileUploader, AzureBlobStorageUploader>();
 

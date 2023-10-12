@@ -9,11 +9,11 @@ namespace MusicStore.Api.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
-public class ConcertController : ControllerBase
+public class ConcertsController : ControllerBase
 {
     private readonly IConcertService _service;
 
-    public ConcertController(IConcertService service)
+    public ConcertsController(IConcertService service)
     {
         _service = service;
     }

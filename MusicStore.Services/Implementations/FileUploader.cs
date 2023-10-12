@@ -17,16 +17,16 @@ public class FileUploader : IFileUploader
         _logger = logger;
     }
     
-    public async Task<string> UploadFileAsync(string? base64string, string fileName)
+    public async Task<string> UploadFileAsync(string? base64String, string? fileName)
     {
-        if (string.IsNullOrEmpty(base64string) || string.IsNullOrEmpty(fileName))
+        if (string.IsNullOrEmpty(base64String) || string.IsNullOrEmpty(fileName))
         {
             return string.Empty;
         }
 
         try
         {
-            var bytes = Convert.FromBase64String(base64string);
+            var bytes = Convert.FromBase64String(base64String);
             var path = Path.Combine(_options.Value.StorageConfiguration.Path, fileName);
             await using var fileStream = new FileStream(path, FileMode.Create);
             await fileStream.WriteAsync(bytes, 0, bytes.Length);

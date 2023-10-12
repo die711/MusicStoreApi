@@ -9,11 +9,11 @@ namespace MusicStore.Api.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
-public class GenreController : ControllerBase
+public class GenresController : ControllerBase
 {
     private readonly IGenreService _service;
 
-    public GenreController(IGenreService service)
+    public GenresController(IGenreService service)
     {
         _service = service;
     }
