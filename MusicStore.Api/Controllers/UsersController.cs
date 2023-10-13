@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using System.Net;
+using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.AspNetCore.Mvc;
 using MusicStore.Dto.Request;
 using MusicStore.Services.Interfaces;
 
@@ -13,6 +15,13 @@ public class UsersController : ControllerBase
     public UsersController(IUserService service)
     {
         _service = service;
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> Login(LoginDtoRequest request)
+    {
+        var response = await _service.LoginAsync(request);
+        return response.Success ? Ok(response) : StatusCode((int)HttpStatusCode.Unauthorized, response);
     }
 
     [HttpPost]

@@ -5,7 +5,7 @@ namespace MusicStore.Services.Interfaces;
 
 public interface IUserService
 {
-     Task<LoginDtoResponse>? LoginAsync(LoginDtoRequest request);
+     Task<LoginDtoResponse> LoginAsync(LoginDtoRequest request);
      Task<BaseResponseGeneric<string>> RegisterAsync(RegisterDtoRequest request);
      Task<BaseResponse> RequestTokenToResetPasswordAsync(DtoRequestPassword request);
      Task<BaseResponse> ResetPasswordAsync(DtoResetPassword request);
