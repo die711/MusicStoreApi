@@ -2,6 +2,7 @@ using System.Diagnostics.Eventing.Reader;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using MusicStore.DataAccess;
+using MusicStore.Dto.Request;
 using MusicStore.Entities;
 using MusicStore.Repositories.Implementations;
 using MusicStore.Repositories.Interfaces;
@@ -80,5 +81,13 @@ app.UseHttpsRedirection();
 app.UseAuthorization();
 
 app.MapControllers();
+
+//Users
+ app.MapPost("Users/Register",  async(IUserService service, RegisterDtoRequest request) =>
+ {
+     var response = await service.RegisterAsync(request);
+     return response.Success ? Results.Ok(response) : Results.BadRequest(response);
+ });
+
 
 app.Run();
