@@ -1,4 +1,5 @@
 using System.Diagnostics.Eventing.Reader;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using MusicStore.DataAccess;
@@ -86,6 +87,12 @@ app.MapControllers();
      var response = await service.RegisterAsync(request);
      return response.Success ? Results.Ok(response) : Results.BadRequest(response);
  });
+
+app.MapPost("api/Users/Login", async (IUserService service, LoginDtoRequest request) =>
+{
+    var response = await service.LoginAsync(request);
+    return response.Success ? Results.Ok(response) : Results.Json(response, statusCode: 401);
+});
 
 
 app.Run();
