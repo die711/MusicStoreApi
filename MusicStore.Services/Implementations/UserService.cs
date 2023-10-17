@@ -2,6 +2,7 @@
 using System.Security;
 using System.Security.Claims;
 using System.Text;
+using Azure;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -169,18 +170,103 @@ public class UserService : IUserService
         return response;
     }
 
-    public Task<BaseResponse> RequestTokenToResetPasswordAsync(DtoRequestPassword request)
+    public async Task<BaseResponse> RequestTokenToResetPasswordAsync(DtoRequestPassword request)
     {
-        throw new NotImplementedException();
+        var response = new BaseResponse();
+
+        try
+        {
+            var userIdentity = await _userManager.FindByEmailAsync(request.Email);
+            
+            if (userIdentity is null)
+                throw new ApplicationException("Usuario no existe");
+
+            var token =await _userManager.GeneratePasswordResetTokenAsync(userIdentity);
+            
+            _logger.LogInformation("Se envio correo con solicitud para reseteo de la cuenta {Email}",request.Email);
+            _logger.LogInformation("tu reset token es {Token}", token);
+            response.Success = true;
+        }
+
+        catch (Exception ex)
+        {
+            _logger.LogCritical(ex, "Error al solicitar token {message}", ex.Message);
+            response.ErrorMessage = ex.Message;
+        }
+
+        return response;
     }
 
-    public Task<BaseResponse> ResetPasswordAsync(DtoResetPassword request)
+    public async Task<BaseResponse> ResetPasswordAsync(DtoResetPassword request)
     {
-        throw new NotImplementedException();
+        var response = new BaseResponse();
+        try
+        {
+            var userIdentity = await _userManager.FindByEmailAsync(request.Email);
+
+            if (userIdentity is null)
+                throw new ApplicationException("Usuario no existe");
+
+            var result = await _userManager.ResetPasswordAsync(userIdentity, request.Token, request.NewPassword);
+
+            if (!result.Succeeded)
+            {
+                var sb = new StringBuilder();
+                foreach (var error in result.Errors)
+                {
+                    sb.AppendLine(error.Description);
+                }
+
+                response.ErrorMessage = sb.ToString();
+                sb.Clear();
+            }
+            else
+            {
+                
+            }
+
+        }
+        catch (Exception ex)
+        {
+            _logger.LogCritical(ex, "Error al solicitar token {message}", ex.Message);
+            response.ErrorMessage = ex.Message;
+        }
+
+        return response;
     }
 
-    public Task<BaseResponse> ChangePasswordAsync(DtoChangePassword request)
+    public async Task<BaseResponse> ChangePasswordAsync(DtoChangePassword request)
     {
-        throw new NotImplementedException();
+        var response = new BaseResponse();
+        
+        try
+        {
+            var userIdentity = await _userManager.FindByEmailAsync(request.Email);
+            if (userIdentity == null)
+                throw new ApplicationException("Usuario no existe");
+
+            var result = await _userManager.ChangePasswordAsync(userIdentity, request.OldPassword, request.NewPassword);
+
+            if (!result.Succeeded)
+            {
+                var sb = new StringBuilder();
+                foreach (var error in result.Errors)
+                {
+                    sb.AppendLine(error.Description);
+                }
+
+                response.ErrorMessage = sb.ToString();
+                sb.Clear();
+            }
+
+
+        }
+        catch (Exception ex)
+        {
+            
+        }
+
+        return response;
+
     }
 }

@@ -1,7 +1,11 @@
 using System.Diagnostics.Eventing.Reader;
+using System.Security.Cryptography.Xml;
+using System.Text;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
 using MusicStore.DataAccess;
 using MusicStore.Dto.Request;
 using MusicStore.Entities;
@@ -29,7 +33,6 @@ builder.Services.AddIdentity<MusicStoreUserIdentity, IdentityRole>(policies =>
         policies.Password.RequireUppercase = false;
         policies.Password.RequireNonAlphanumeric = false;
         policies.Password.RequiredLength = 5;
-
         policies.User.RequireUniqueEmail = true;
 
         //politicas de bloqueo
@@ -42,7 +45,33 @@ builder.Services.AddIdentity<MusicStoreUserIdentity, IdentityRole>(policies =>
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(c =>
+{
+    c.SwaggerDoc("v1", new OpenApiInfo() { Title = "Music Store API", Version = "v1"});
+    c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Description = "Autenticacion por JWT usando como ejemplo en el Header: Authorizacion: Bearer {token}",
+        Name = "Authorization",
+        Type = SecuritySchemeType.Http,
+        Scheme = "bearer",
+        BearerFormat = "JWT"
+    });
+    
+    c.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+        new OpenApiSecurityScheme
+        {
+            Reference = new OpenApiReference
+            {
+                Type = ReferenceType.SecurityScheme,
+                Id = "Bearer"
+            }
+        },
+        Array.Empty<string>()
+        }
+    });
+});
 
 //Mapear el contenido del archivo appsettings .json en una clase
 builder.Services.Configure<AppSettings>(builder.Configuration);
@@ -68,6 +97,25 @@ if (builder.Environment.IsDevelopment())
 else
     builder.Services.AddTransient<IFileUploader, AzureBlobStorageUploader>();
 
+builder.Services.AddAuthentication(x =>
+{
+    x.DefaultAuthenticateScheme = "Bearer";
+    x.DefaultChallengeScheme = "Bearer";
+}).AddJwtBearer(x =>
+{
+    var key = Encoding.UTF8.GetBytes(builder.Configuration["Jwt:SecretKey"] ?? throw new InvalidOperationException());
+    x.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuer = true,
+        ValidateAudience = true,
+        ValidateLifetime = true,
+        ValidateIssuerSigningKey = true,
+        ValidIssuer = builder.Configuration["Jwt:Issuer"],
+        ValidAudience = builder.Configuration["Jwt:Audience"],
+        IssuerSigningKey = new SymmetricSecurityKey(key)
+    };
+});
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -78,6 +126,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 
@@ -88,10 +137,22 @@ app.MapControllers();
      return response.Success ? Results.Ok(response) : Results.BadRequest(response);
  });
 
-app.MapPost("api/Users/Login", async (IUserService service, LoginDtoRequest request) =>
+app.MapPost("Users/Login", async (IUserService service, LoginDtoRequest request) =>
 {
     var response = await service.LoginAsync(request);
     return response.Success ? Results.Ok(response) : Results.Json(response, statusCode: 401);
+});
+
+app.MapPost("Users/SendTokenToResetPassword", async (IUserService service, DtoRequestPassword request) =>
+{
+    var response = await service.RequestTokenToResetPasswordAsync(request);
+    return response.Success ? Results.Ok(response) : Results.BadRequest(response);
+});
+
+app.MapPost("Users/ResetPassword", async (IUserService service, DtoResetPassword request) =>
+{
+    var response = await service.ResetPasswordAsync(request);
+    return response.Success ? Results.Ok(response) : Results.BadRequest(response);
 });
 
 
