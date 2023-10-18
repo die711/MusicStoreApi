@@ -113,9 +113,35 @@ public class SaleService : ISaleService
         return response;
     }
 
-    public Task<BaseResponsePagination<SaleDtoResponse>> ListAsync(string email, string? filter, int page, int rows)
+    public async Task<BaseResponsePagination<SaleDtoResponse>> ListAsync(string email, string? filter, int page, int rows)
     {
-        throw new NotImplementedException();
+
+        var response = new BaseResponsePagination<SaleDtoResponse>();
+        Expression<Func<Sale, bool>> predicate = p =>
+            p.Customer.Email.Equals(email) && p.Concert.Title.Contains(filter ?? string.Empty);
+        
+        try
+        {
+            var tuple = await _saleRepository.ListAsync(predicate, 
+                p => _mapper.Map<SaleDtoResponse>(p),
+                x => x.OperationNumber,
+                page, rows);
+
+            response.Data = tuple.Collection;
+            response.TotalPages = Utils.Utilities.GetTotalPages(tuple.Total, rows);
+
+            response.Success = true;
+
+
+        }
+        catch (Exception ex)
+        {
+            _logger.LogCritical(ex, "Error al listar {message}", ex.Message);
+            response.ErrorMessage = "Error al listar las ventas";
+        }
+
+        return response;
+
     }
 
     public async Task<BaseResponseGeneric<SaleDtoResponse>> GetSaleAsync(long id)
