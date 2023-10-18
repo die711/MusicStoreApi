@@ -51,7 +51,7 @@ public class RepositoryBase<TEntity> : IRepositoryBase<TEntity> where TEntity : 
             .ToListAsync();
     }
 
-    public async Task<long> AddAsync(TEntity entity)
+    public virtual async Task<long> AddAsync(TEntity entity)
     {
         await Context.Set<TEntity>().AddAsync(entity);
         await Context.SaveChangesAsync();

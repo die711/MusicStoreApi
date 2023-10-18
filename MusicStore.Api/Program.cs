@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using MusicStore.Api.Endpoints;
 using MusicStore.DataAccess;
 using MusicStore.Dto.Request;
 using MusicStore.Entities;
@@ -22,6 +23,8 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddDbContext<MusicStoreDbContext>(options =>
 {
     options.UseSqlServer(builder.Configuration.GetConnectionString("MusicStoreDb"));
+    if (builder.Environment.IsDevelopment())
+        options.EnableSensitiveDataLogging();
 });
 
 //Aca se especifica la clase de usuario personalizado
@@ -130,6 +133,7 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 
+app.MapHomeEndPoints();
 //Users
  app.MapPost("Users/Register",  async(IUserService service, RegisterDtoRequest request) =>
  {
@@ -155,5 +159,10 @@ app.MapPost("Users/ResetPassword", async (IUserService service, DtoResetPassword
     return response.Success ? Results.Ok(response) : Results.BadRequest(response);
 });
 
+app.MapPost("Users/ChangePassword", async (IUserService service, DtoChangePassword request) =>
+{
+    var response = await service.ChangePasswordAsync(request);
+    return response.Success ? Results.Ok(response) : Results.BadRequest(response);
+});
 
 app.Run();

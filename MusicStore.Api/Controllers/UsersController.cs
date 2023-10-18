@@ -30,5 +30,26 @@ public class UsersController : ControllerBase
         var response = await _service.RegisterAsync(request);
         return response.Success ? Ok(response) : BadRequest(response);
     }
+
+    [HttpPost]
+    public async Task<IActionResult> SendTokenToResetPassword(DtoRequestPassword request)
+    {
+        var response = await _service.RequestTokenToResetPasswordAsync(request);
+        return Ok(response);
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> ResetPassword(DtoResetPassword request)
+    {
+        var response = await _service.ResetPasswordAsync(request);
+        return Ok(response);
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> ChangePassword(DtoChangePassword request)
+    {
+        return Ok(await _service.ChangePasswordAsync(request));
+    }
+    
     
 }

@@ -246,7 +246,8 @@ public class UserService : IUserService
                 throw new ApplicationException("Usuario no existe");
 
             var result = await _userManager.ChangePasswordAsync(userIdentity, request.OldPassword, request.NewPassword);
-
+            response.Success = result.Succeeded;
+            
             if (!result.Succeeded)
             {
                 var sb = new StringBuilder();
@@ -258,15 +259,13 @@ public class UserService : IUserService
                 response.ErrorMessage = sb.ToString();
                 sb.Clear();
             }
-
-
         }
         catch (Exception ex)
         {
-            
+            _logger.LogCritical(ex,"Error al solicitar token {Message}", ex.Message);
+            response.ErrorMessage = ex.Message;
         }
 
         return response;
-
     }
 }
