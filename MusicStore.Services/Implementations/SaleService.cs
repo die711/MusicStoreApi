@@ -1,10 +1,12 @@
-﻿using AutoMapper;
+﻿using System.Linq.Expressions;
+using AutoMapper;
 using Microsoft.Extensions.Logging;
 using MusicStore.Dto.Request;
 using MusicStore.Dto.Response;
 using MusicStore.Entities;
 using MusicStore.Repositories.Interfaces;
 using MusicStore.Services.Interfaces;
+using MusicStore.Services.Utils;
 
 namespace MusicStore.Services.Implementations;
 
@@ -79,6 +81,63 @@ public class SaleService : ISaleService
             response.ErrorMessage = ex.Message;
         }
 
+        return response;
+    }
+
+    public async Task<BaseResponsePagination<SaleDtoResponse>> ListAsync(DateTime dateStart, DateTime dateEnd, int page, int rows)
+    {
+        var response = new BaseResponsePagination<SaleDtoResponse>();
+        
+        try
+        {
+            var end = dateEnd.AddHours(23);
+
+            Expression<Func<Sale, bool>> predicate = p => p.SaleDate >= dateStart && p.SaleDate <= end;
+
+            var tuple = await _saleRepository.ListAsync(predicate,
+                p => _mapper.Map<SaleDtoResponse>(p),
+                x => x.OperationNumber,
+                page, rows);
+
+            response.Data = tuple.Collection;
+            response.TotalPages = Utilities.GetTotalPages(tuple.Total, rows);
+
+            response.Success = true;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogCritical(ex, "Error al listar {Message}", ex.Message);
+            response.ErrorMessage = ex.Message;
+        }
+
+        return response;
+    }
+
+    public Task<BaseResponsePagination<SaleDtoResponse>> ListAsync(string email, string? filter, int page, int rows)
+    {
+        throw new NotImplementedException();
+    }
+
+    public async Task<BaseResponseGeneric<SaleDtoResponse>> GetSaleAsync(long id)
+    {
+        var response = new BaseResponseGeneric<SaleDtoResponse>();
+
+        try
+        {
+            var sale = await _saleRepository.FindByIdAsync(id);
+
+            if (sale == null)
+                throw new Exception("Venta no existe");
+
+            response.Data = _mapper.Map<SaleDtoResponse>(sale);
+            response.Success = true;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogCritical(ex,"Error al obtener la Venta {Message}", ex.Message);
+            response.ErrorMessage = "Error al obtener la venta";
+        }
+        
         return response;
     }
 }

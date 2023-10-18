@@ -1,5 +1,6 @@
 ﻿using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using MusicStore.Dto.Request;
 using MusicStore.Services.Interfaces;
@@ -31,6 +32,13 @@ public class SalesController : ControllerBase
         var response = await _service.AddAsync(email, request);
         return response.Success ? Ok(response) : BadRequest(response);
     }
-    
+
+    [AllowAnonymous]
+    [HttpGet("{id:long}")]
+    public async Task<IActionResult> GetSaleAsync(long id)
+    {
+        var response = await _service.GetSaleAsync(id);
+        return response.Success ? Ok(response) : NotFound(response);
+    }
     
 }
