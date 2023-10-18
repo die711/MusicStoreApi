@@ -64,7 +64,7 @@ public class RepositoryBase<TEntity> : IRepositoryBase<TEntity> where TEntity : 
         return await Context.Set<TEntity>().FindAsync(id);
     }
 
-    public async Task UpdateAsync()
+    public virtual async Task UpdateAsync()
     {
         await Context.SaveChangesAsync();
     }

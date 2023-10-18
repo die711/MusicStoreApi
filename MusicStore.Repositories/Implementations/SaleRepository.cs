@@ -16,11 +16,17 @@ public class SaleRepository : RepositoryBase<Sale>, ISaleRepository
         await Context.Database.BeginTransactionAsync();
     }
 
+    public override async Task UpdateAsync()
+    {
+        //await Context.Database.CommitTransactionAsync();
+        await Context.SaveChangesAsync();
+    }
+
     public async Task RollBackAsync()
     {
         await Context.Database.RollbackTransactionAsync();
     }
-
+    
     public override async Task<long> AddAsync(Sale entity)
     {
         entity.SaleDate = DateTime.Now;

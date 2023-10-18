@@ -1,4 +1,5 @@
 using System.Diagnostics.Eventing.Reader;
+using System.Security.Claims;
 using System.Security.Cryptography.Xml;
 using System.Text;
 using Microsoft.AspNetCore.Http.HttpResults;
@@ -50,7 +51,7 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
-    c.SwaggerDoc("v1", new OpenApiInfo() { Title = "Music Store API", Version = "v1"});
+    c.SwaggerDoc("v1", new OpenApiInfo() { Title = "Music Store API", Version = "v1" });
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
         Description = "Autenticacion por JWT usando como ejemplo en el Header: Authorizacion: Bearer {token}",
@@ -59,19 +60,19 @@ builder.Services.AddSwaggerGen(c =>
         Scheme = "bearer",
         BearerFormat = "JWT"
     });
-    
+
     c.AddSecurityRequirement(new OpenApiSecurityRequirement
     {
         {
-        new OpenApiSecurityScheme
-        {
-            Reference = new OpenApiReference
+            new OpenApiSecurityScheme
             {
-                Type = ReferenceType.SecurityScheme,
-                Id = "Bearer"
-            }
-        },
-        Array.Empty<string>()
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            Array.Empty<string>()
         }
     });
 });
@@ -83,15 +84,18 @@ builder.Services.AddAutoMapper(config =>
 {
     config.AddProfile<GenreProfile>();
     config.AddProfile<ConcertProfile>();
+    config.AddProfile<SaleProfile>();
 });
 
 builder.Services.AddTransient<IGenreRepository, GenreRepository>();
 builder.Services.AddTransient<IConcertRepository, ConcertRepository>();
 builder.Services.AddTransient<ICustomerRepository, CustomerRepository>();
+builder.Services.AddTransient<ISaleRepository, SaleRepository>();
 
 builder.Services.AddTransient<IGenreService, GenreService>();
 builder.Services.AddTransient<IConcertService, ConcertService>();
 builder.Services.AddTransient<IUserService, UserService>();
+builder.Services.AddTransient<ISaleService, SaleService>();
 
 //builder.Services.AddTransient<IFileUploader, AzureBlobStorageUploader>();
 
@@ -134,12 +138,31 @@ app.UseAuthorization();
 app.MapControllers();
 
 app.MapHomeEndPoints();
+
+
+//Sales
+
+app.MapPost("Sales",
+    async (ISaleService service, HttpContext context, ILogger<Program> logger, SaleDtoRequest request) =>
+    {
+        var email = context.User.Identity.Name;
+
+        logger.LogInformation("Autenticado como {Name}", context.User.Identity.Name);
+        logger.LogInformation("El token vencera el dia {Date}",
+            context.User.Claims.First(p => p.Type == ClaimTypes.Expiration).Value);
+
+        var response = await service.AddAsync(email, request);
+        return response.Success ? Results.Ok(response) : Results.BadRequest(response);
+       // return Results.Ok();
+    }).RequireAuthorization();
+
+
 //Users
- app.MapPost("Users/Register",  async(IUserService service, RegisterDtoRequest request) =>
- {
-     var response = await service.RegisterAsync(request);
-     return response.Success ? Results.Ok(response) : Results.BadRequest(response);
- });
+app.MapPost("Users/Register", async (IUserService service, RegisterDtoRequest request) =>
+{
+    var response = await service.RegisterAsync(request);
+    return response.Success ? Results.Ok(response) : Results.BadRequest(response);
+});
 
 app.MapPost("Users/Login", async (IUserService service, LoginDtoRequest request) =>
 {
