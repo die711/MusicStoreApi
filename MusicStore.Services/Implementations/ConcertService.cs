@@ -113,6 +113,9 @@ public class ConcertService : IConcertService
 
             _mapper.Map(request, concert);
 
+            if (!string.IsNullOrEmpty(request.FileName))
+                concert.ImageUrl = await _fileUploader.UploadFileAsync(request.Base64Image, request.FileName);
+            
             await _repository.UpdateAsync();
             response.Success = true;
         }

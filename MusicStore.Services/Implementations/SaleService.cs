@@ -166,4 +166,25 @@ public class SaleService : ISaleService
         
         return response;
     }
+
+    public async Task<BaseResponseGeneric<ICollection<ReportDtoResponse>>> GetReportSaleAsync(DateTime dateStart, DateTime dateEnd)
+    {
+        var response = new BaseResponseGeneric<ICollection<ReportDtoResponse>>();
+
+        try
+        {
+            var list = await _saleRepository.GetReportSaleAsync(dateStart, dateEnd);
+            response.Data = list.Select(p => _mapper.Map<ReportDtoResponse>(p)).ToList();
+            response.Success = true;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error al obtener el reporte de ventas");
+            response.ErrorMessage = "Error en obtener el reporte";
+        }
+        
+        
+        return response;
+
+    }
 }

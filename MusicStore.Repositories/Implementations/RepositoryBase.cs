@@ -19,7 +19,7 @@ public class RepositoryBase<TEntity> : IRepositoryBase<TEntity> where TEntity : 
         return await Context.Set<TEntity>().AsNoTracking().Where(predicate).ToListAsync();
     }
 
-    public async Task<(ICollection<TInfo> Collection, int Total)> ListAsync<TInfo, TKey>(
+    public virtual async Task<(ICollection<TInfo> Collection, int Total)> ListAsync<TInfo, TKey>(
         Expression<Func<TEntity, bool>> predicate
         , Expression<Func<TEntity, TInfo>> selector
         , Expression<Func<TEntity, TKey>> orderBy

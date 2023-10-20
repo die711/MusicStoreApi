@@ -138,6 +138,7 @@ app.UseAuthorization();
 app.MapControllers();
 
 app.MapHomeEndPoints();
+app.MapReports();
 
 
 //Sales
