@@ -1,25 +1,33 @@
+using HealthChecks.UI.Client;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
+using MusicStore.DataAccess;
+using MusicStore.HealthCheckApi.HealthChecks;
+
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
+builder.Services.AddDbContext<MusicStoreDbContext>(options =>
+{
+    options.UseSqlServer(builder.Configuration.GetConnectionString("MusicStoreDb"));
+});
 
-builder.Services.AddControllers();
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddHealthChecks()
+    .AddCheck("self", () => HealthCheckResult.Healthy(), tags: new[] { "api" })
+    .AddDbContextCheck<MusicStoreDbContext>("Database", HealthStatus.Unhealthy, tags: new[] { "database", "api" })
+    .AddTypeActivatedCheck<PingHealthCheck>("Firebase", HealthStatus.Degraded, tags: new[] { "api" }, "firebase.com")
+    .AddTypeActivatedCheck<PingHealthCheck>("Azure", HealthStatus.Degraded, tags: new[] { "api" }, "azure.com")
+    .AddTypeActivatedCheck<PingHealthCheck>("Pokemon API", HealthStatus.Degraded, tags: new[] { "api" }, "pokeapi.co");
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
-
 app.UseHttpsRedirection();
 
-app.UseAuthorization();
 
-app.MapControllers();
+app.MapHealthChecks("/health", new HealthCheckOptions
+{
+    ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse,
+    Predicate = x => x.Tags.Contains("api")
+});
 
 app.Run();
