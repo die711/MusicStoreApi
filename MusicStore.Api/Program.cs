@@ -16,14 +16,34 @@ using MusicStore.Repositories.Interfaces;
 using MusicStore.Services.Implementations;
 using MusicStore.Services.Interfaces;
 using MusicStore.Services.Profiles;
+using Serilog;
+using Serilog.Core;
+using Serilog.Events;
+using Serilog.Sinks.MSSqlServer;
 
 var builder = WebApplication.CreateBuilder(args);
+var connectionString = builder.Configuration.GetConnectionString("MusicStoreDb");
 
+var logger = new LoggerConfiguration()
+    .WriteTo.Console(LogEventLevel.Debug)
+    .WriteTo.File("..\\log.txt",
+        outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss} [{Level:u3}] - {Message}{NewLine}{Exception}",
+        rollingInterval: RollingInterval.Day,
+        restrictedToMinimumLevel: LogEventLevel.Warning)
+    .WriteTo.MSSqlServer(connectionString,
+        new MSSqlServerSinkOptions
+        {
+            AutoCreateSqlTable = true,
+            TableName = "ApiLogs"
+        }, restrictedToMinimumLevel: LogEventLevel.Warning)
+    .CreateLogger();
+
+builder.Logging.AddSerilog(logger);
 // Add services to the container.
 
 builder.Services.AddDbContext<MusicStoreDbContext>(options =>
 {
-    options.UseSqlServer(builder.Configuration.GetConnectionString("MusicStoreDb"));
+    options.UseSqlServer(connectionString);
     if (builder.Environment.IsDevelopment())
         options.EnableSensitiveDataLogging();
 });
@@ -188,5 +208,26 @@ app.MapPost("Users/ChangePassword", async (IUserService service, DtoChangePasswo
     var response = await service.ChangePasswordAsync(request);
     return response.Success ? Results.Ok(response) : Results.BadRequest(response);
 });
+
+
+
+if (builder.Environment.IsProduction())
+{
+    using var scope = app.Services.CreateScope();
+    {
+        logger.Information("Configurando las migraciones");
+        try
+        {
+            var db = scope.ServiceProvider.GetRequiredService<MusicStoreDbContext>();
+            db.Database.Migrate();
+        }
+        catch (Exception ex)
+        {
+            logger.Error("Error al conectarse a {ConnectionString} {Message}", connectionString, ex.Message);
+        }
+    }
+    
+    
+}
 
 app.Run();

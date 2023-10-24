@@ -6,6 +6,7 @@ using MusicStore.Dto.Response;
 using MusicStore.Entities;
 using MusicStore.Repositories.Interfaces;
 using MusicStore.Services.Interfaces;
+using MusicStore.Services.Utils;
 
 namespace MusicStore.Services.Implementations;
 
@@ -32,9 +33,11 @@ public class GenreService : IGenreService
 
             response.Data = _mapper.Map<ICollection<GenreDtoResponse>>(collection);
             response.Success = true;
+            throw new Exception();
         }
         catch (Exception ex)
         {
+            response.ErrorMessage = _logger.LogMessage(ex, nameof(ListAsync));
             _logger.LogError(ex, "Error en listar generos {Message}", ex.Message);
             response.ErrorMessage = ex.Message;
         }

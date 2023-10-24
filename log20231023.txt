@@ -1,0 +1,28 @@
+2023-10-23 23:16:51 [WRN] - Sensitive data logging is enabled. Log entries and exception messages may include sensitive application data; this mode should only be enabled during development.
+2023-10-23 23:16:51 [FTL] - "Error en ListAsync" "Exception of type 'System.Exception' was thrown."
+System.Exception: Exception of type 'System.Exception' was thrown.
+   at MusicStore.Services.Implementations.GenreService.ListAsync() in C:\Users\di_56\Desktop\github\MusicStoreApi\MusicStore.Services\Implementations\GenreService.cs:line 36
+2023-10-23 23:16:51 [ERR] - Error en listar generos "Exception of type 'System.Exception' was thrown."
+System.Exception: Exception of type 'System.Exception' was thrown.
+   at MusicStore.Services.Implementations.GenreService.ListAsync() in C:\Users\di_56\Desktop\github\MusicStoreApi\MusicStore.Services\Implementations\GenreService.cs:line 36
+2023-10-23 23:18:21 [WRN] - Sensitive data logging is enabled. Log entries and exception messages may include sensitive application data; this mode should only be enabled during development.
+2023-10-23 23:18:22 [FTL] - "Error en ListAsync" "Exception of type 'System.Exception' was thrown."
+System.Exception: Exception of type 'System.Exception' was thrown.
+   at MusicStore.Services.Implementations.GenreService.ListAsync() in C:\Users\di_56\Desktop\github\MusicStoreApi\MusicStore.Services\Implementations\GenreService.cs:line 36
+2023-10-23 23:18:22 [ERR] - Error en listar generos "Exception of type 'System.Exception' was thrown."
+System.Exception: Exception of type 'System.Exception' was thrown.
+   at MusicStore.Services.Implementations.GenreService.ListAsync() in C:\Users\di_56\Desktop\github\MusicStoreApi\MusicStore.Services\Implementations\GenreService.cs:line 36
+2023-10-23 23:19:10 [WRN] - Sensitive data logging is enabled. Log entries and exception messages may include sensitive application data; this mode should only be enabled during development.
+2023-10-23 23:19:10 [FTL] - "Error en ListAsync" "Exception of type 'System.Exception' was thrown."
+System.Exception: Exception of type 'System.Exception' was thrown.
+   at MusicStore.Services.Implementations.GenreService.ListAsync() in C:\Users\di_56\Desktop\github\MusicStoreApi\MusicStore.Services\Implementations\GenreService.cs:line 36
+2023-10-23 23:19:10 [ERR] - Error en listar generos "Exception of type 'System.Exception' was thrown."
+System.Exception: Exception of type 'System.Exception' was thrown.
+   at MusicStore.Services.Implementations.GenreService.ListAsync() in C:\Users\di_56\Desktop\github\MusicStoreApi\MusicStore.Services\Implementations\GenreService.cs:line 36
+2023-10-23 23:20:44 [WRN] - Sensitive data logging is enabled. Log entries and exception messages may include sensitive application data; this mode should only be enabled during development.
+2023-10-23 23:20:44 [FTL] - "Error en ListAsync" "Exception of type 'System.Exception' was thrown."
+System.Exception: Exception of type 'System.Exception' was thrown.
+   at MusicStore.Services.Implementations.GenreService.ListAsync() in C:\Users\di_56\Desktop\github\MusicStoreApi\MusicStore.Services\Implementations\GenreService.cs:line 36
+2023-10-23 23:20:44 [ERR] - Error en listar generos "Exception of type 'System.Exception' was thrown."
+System.Exception: Exception of type 'System.Exception' was thrown.
+   at MusicStore.Services.Implementations.GenreService.ListAsync() in C:\Users\di_56\Desktop\github\MusicStoreApi\MusicStore.Services\Implementations\GenreService.cs:line 36
