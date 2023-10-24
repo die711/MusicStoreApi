@@ -1,0 +1,156 @@
+2023-10-24 09:18:49 [WRN] - Sensitive data logging is enabled. Log entries and exception messages may include sensitive application data; this mode should only be enabled during development. 
+ 2023-10-24 09:18:49 [ERR] - Failed executing DbCommand ("44"ms) [Parameters=["@__p_0='' (Size = 100), @__p_1='0', @__p_2='100'"], CommandType='Text', CommandTimeout='30']"
+""SELECT [t].[Id], [g].[Name], [t].[Title], [t].[Description], [t].[Place], [t].[UnitPrice], [t].[DateEvent], [t].[TicketsQuantity], [t].[ImageUrl], CASE
+    WHEN [t].[Status] = CAST(1 AS bit) THEN CASE
+        WHEN [t].[Finalized] = CAST(0 AS bit) THEN N'Activo'
+        ELSE N'Finalizado'
+    END
+    ELSE N'Inactivo'
+END
+FROM (
+    SELECT [c].[Id], [c].[DateEvent], [c].[Description], [c].[Finalized], [c].[GenreId], [c].[ImageUrl], [c].[Place], [c].[Status], [c].[TicketsQuantity], [c].[Title], [c].[UnitPrice]
+    FROM [Concert] AS [c]
+    WHERE [c].[Status] = CAST(1 AS bit) AND ((@__p_0 LIKE N'') OR CHARINDEX(@__p_0, [c].[Title]) > 0)
+    ORDER BY [c].[Title]
+    OFFSET @__p_1 ROWS FETCH NEXT @__p_2 ROWS ONLY
+) AS [t]
+INNER JOIN [Genre] AS [g] ON [t].[GenreId] = [g].[Id]
+ORDER BY [t].[Title]" 
+ 2023-10-24 09:18:49 [ERR] - An exception occurred while iterating over the results of a query for context type '"MusicStore.DataAccess.MusicStoreDbContext"'."
+""Microsoft.Data.SqlClient.SqlException (0x80131904): Invalid object name 'Concert'.
+   at Microsoft.Data.SqlClient.SqlCommand.<>c.<ExecuteDbDataReaderAsync>b__209_0(Task`1 result)
+   at System.Threading.Tasks.ContinuationResultTaskFromResultTask`2.InnerInvoke()
+   at System.Threading.ExecutionContext.RunInternal(ExecutionContext executionContext, ContextCallback callback, Object state)
+--- End of stack trace from previous location ---
+   at System.Threading.ExecutionContext.RunInternal(ExecutionContext executionContext, ContextCallback callback, Object state)
+   at System.Threading.Tasks.Task.ExecuteWithThreadLocal(Task& currentTaskSlot, Thread threadPoolThread)
+--- End of stack trace from previous location ---
+   at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Query.Internal.SingleQueryingEnumerable`1.AsyncEnumerator.InitializeReaderAsync(AsyncEnumerator enumerator, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.SqlServer.Storage.Internal.SqlServerExecutionStrategy.ExecuteAsync[TState,TResult](TState state, Func`4 operation, Func`4 verifySucceeded, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Query.Internal.SingleQueryingEnumerable`1.AsyncEnumerator.MoveNextAsync()
+ClientConnectionId:4b058859-1c84-43ee-9742-991d5c21ba97
+Error Number:208,State:1,Class:16" 
+ Microsoft.Data.SqlClient.SqlException (0x80131904): Invalid object name 'Concert'.
+   at Microsoft.Data.SqlClient.SqlCommand.<>c.<ExecuteDbDataReaderAsync>b__209_0(Task`1 result)
+   at System.Threading.Tasks.ContinuationResultTaskFromResultTask`2.InnerInvoke()
+   at System.Threading.ExecutionContext.RunInternal(ExecutionContext executionContext, ContextCallback callback, Object state)
+--- End of stack trace from previous location ---
+   at System.Threading.ExecutionContext.RunInternal(ExecutionContext executionContext, ContextCallback callback, Object state)
+   at System.Threading.Tasks.Task.ExecuteWithThreadLocal(Task& currentTaskSlot, Thread threadPoolThread)
+--- End of stack trace from previous location ---
+   at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Query.Internal.SingleQueryingEnumerable`1.AsyncEnumerator.InitializeReaderAsync(AsyncEnumerator enumerator, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.SqlServer.Storage.Internal.SqlServerExecutionStrategy.ExecuteAsync[TState,TResult](TState state, Func`4 operation, Func`4 verifySucceeded, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Query.Internal.SingleQueryingEnumerable`1.AsyncEnumerator.MoveNextAsync()
+ClientConnectionId:4b058859-1c84-43ee-9742-991d5c21ba97
+Error Number:208,State:1,Class:16
+2023-10-24 09:18:50 [ERR] - Error al listar los conciertos "Invalid object name 'Concert'." 
+ Microsoft.Data.SqlClient.SqlException (0x80131904): Invalid object name 'Concert'.
+   at Microsoft.Data.SqlClient.SqlCommand.<>c.<ExecuteDbDataReaderAsync>b__209_0(Task`1 result)
+   at System.Threading.Tasks.ContinuationResultTaskFromResultTask`2.InnerInvoke()
+   at System.Threading.ExecutionContext.RunInternal(ExecutionContext executionContext, ContextCallback callback, Object state)
+--- End of stack trace from previous location ---
+   at System.Threading.ExecutionContext.RunInternal(ExecutionContext executionContext, ContextCallback callback, Object state)
+   at System.Threading.Tasks.Task.ExecuteWithThreadLocal(Task& currentTaskSlot, Thread threadPoolThread)
+--- End of stack trace from previous location ---
+   at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Query.Internal.SingleQueryingEnumerable`1.AsyncEnumerator.InitializeReaderAsync(AsyncEnumerator enumerator, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.SqlServer.Storage.Internal.SqlServerExecutionStrategy.ExecuteAsync[TState,TResult](TState state, Func`4 operation, Func`4 verifySucceeded, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Query.Internal.SingleQueryingEnumerable`1.AsyncEnumerator.MoveNextAsync()
+   at Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.ToListAsync[TSource](IQueryable`1 source, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.ToListAsync[TSource](IQueryable`1 source, CancellationToken cancellationToken)
+   at MusicStore.Repositories.Implementations.RepositoryBase`1.ListAsync[TInfo,TKey](Expression`1 predicate, Expression`1 selector, Expression`1 orderBy, Int32 page, Int32 rows) in C:\Users\di_56\Desktop\github\MusicStoreApi\MusicStore.Repositories\Implementations\RepositoryBase.cs:line 28
+   at MusicStore.Repositories.Implementations.ConcertRepository.ListAsync(String filter, Int32 page, Int32 rows) in C:\Users\di_56\Desktop\github\MusicStoreApi\MusicStore.Repositories\Implementations\ConcertRepository.cs:line 47
+   at MusicStore.Services.Implementations.ConcertService.ListAsync(String filter, Int32 page, Int32 rows) in C:\Users\di_56\Desktop\github\MusicStoreApi\MusicStore.Services\Implementations\ConcertService.cs:line 34
+ClientConnectionId:4b058859-1c84-43ee-9742-991d5c21ba97
+Error Number:208,State:1,Class:16
+2023-10-24 09:18:50 [ERR] - Failed executing DbCommand ("3"ms) [Parameters=[""], CommandType='Text', CommandTimeout='30']"
+""SELECT [g].[Id], [g].[Name], [g].[Status]
+FROM [Genre] AS [g]
+WHERE [g].[Status] = CAST(1 AS bit)" 
+ 2023-10-24 09:18:50 [ERR] - An exception occurred while iterating over the results of a query for context type '"MusicStore.DataAccess.MusicStoreDbContext"'."
+""Microsoft.Data.SqlClient.SqlException (0x80131904): Invalid object name 'Genre'.
+   at Microsoft.Data.SqlClient.SqlCommand.<>c.<ExecuteDbDataReaderAsync>b__209_0(Task`1 result)
+   at System.Threading.Tasks.ContinuationResultTaskFromResultTask`2.InnerInvoke()
+   at System.Threading.ExecutionContext.RunInternal(ExecutionContext executionContext, ContextCallback callback, Object state)
+--- End of stack trace from previous location ---
+   at System.Threading.ExecutionContext.RunInternal(ExecutionContext executionContext, ContextCallback callback, Object state)
+   at System.Threading.Tasks.Task.ExecuteWithThreadLocal(Task& currentTaskSlot, Thread threadPoolThread)
+--- End of stack trace from previous location ---
+   at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Query.Internal.SingleQueryingEnumerable`1.AsyncEnumerator.InitializeReaderAsync(AsyncEnumerator enumerator, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.SqlServer.Storage.Internal.SqlServerExecutionStrategy.ExecuteAsync[TState,TResult](TState state, Func`4 operation, Func`4 verifySucceeded, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Query.Internal.SingleQueryingEnumerable`1.AsyncEnumerator.MoveNextAsync()
+ClientConnectionId:4b058859-1c84-43ee-9742-991d5c21ba97
+Error Number:208,State:1,Class:16" 
+ Microsoft.Data.SqlClient.SqlException (0x80131904): Invalid object name 'Genre'.
+   at Microsoft.Data.SqlClient.SqlCommand.<>c.<ExecuteDbDataReaderAsync>b__209_0(Task`1 result)
+   at System.Threading.Tasks.ContinuationResultTaskFromResultTask`2.InnerInvoke()
+   at System.Threading.ExecutionContext.RunInternal(ExecutionContext executionContext, ContextCallback callback, Object state)
+--- End of stack trace from previous location ---
+   at System.Threading.ExecutionContext.RunInternal(ExecutionContext executionContext, ContextCallback callback, Object state)
+   at System.Threading.Tasks.Task.ExecuteWithThreadLocal(Task& currentTaskSlot, Thread threadPoolThread)
+--- End of stack trace from previous location ---
+   at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Query.Internal.SingleQueryingEnumerable`1.AsyncEnumerator.InitializeReaderAsync(AsyncEnumerator enumerator, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.SqlServer.Storage.Internal.SqlServerExecutionStrategy.ExecuteAsync[TState,TResult](TState state, Func`4 operation, Func`4 verifySucceeded, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Query.Internal.SingleQueryingEnumerable`1.AsyncEnumerator.MoveNextAsync()
+ClientConnectionId:4b058859-1c84-43ee-9742-991d5c21ba97
+Error Number:208,State:1,Class:16
+2023-10-24 09:18:50 [FTL] - "Error en ListAsync" "Invalid object name 'Genre'." 
+ Microsoft.Data.SqlClient.SqlException (0x80131904): Invalid object name 'Genre'.
+   at Microsoft.Data.SqlClient.SqlCommand.<>c.<ExecuteDbDataReaderAsync>b__209_0(Task`1 result)
+   at System.Threading.Tasks.ContinuationResultTaskFromResultTask`2.InnerInvoke()
+   at System.Threading.ExecutionContext.RunInternal(ExecutionContext executionContext, ContextCallback callback, Object state)
+--- End of stack trace from previous location ---
+   at System.Threading.ExecutionContext.RunInternal(ExecutionContext executionContext, ContextCallback callback, Object state)
+   at System.Threading.Tasks.Task.ExecuteWithThreadLocal(Task& currentTaskSlot, Thread threadPoolThread)
+--- End of stack trace from previous location ---
+   at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Query.Internal.SingleQueryingEnumerable`1.AsyncEnumerator.InitializeReaderAsync(AsyncEnumerator enumerator, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.SqlServer.Storage.Internal.SqlServerExecutionStrategy.ExecuteAsync[TState,TResult](TState state, Func`4 operation, Func`4 verifySucceeded, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Query.Internal.SingleQueryingEnumerable`1.AsyncEnumerator.MoveNextAsync()
+   at Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.ToListAsync[TSource](IQueryable`1 source, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.ToListAsync[TSource](IQueryable`1 source, CancellationToken cancellationToken)
+   at MusicStore.Repositories.Implementations.RepositoryBase`1.ListAsync(Expression`1 predicate) in C:\Users\di_56\Desktop\github\MusicStoreApi\MusicStore.Repositories\Implementations\RepositoryBase.cs:line 19
+   at MusicStore.Services.Implementations.GenreService.ListAsync() in C:\Users\di_56\Desktop\github\MusicStoreApi\MusicStore.Services\Implementations\GenreService.cs:line 32
+ClientConnectionId:4b058859-1c84-43ee-9742-991d5c21ba97
+Error Number:208,State:1,Class:16
+2023-10-24 09:18:50 [ERR] - Error en listar generos "Invalid object name 'Genre'." 
+ Microsoft.Data.SqlClient.SqlException (0x80131904): Invalid object name 'Genre'.
+   at Microsoft.Data.SqlClient.SqlCommand.<>c.<ExecuteDbDataReaderAsync>b__209_0(Task`1 result)
+   at System.Threading.Tasks.ContinuationResultTaskFromResultTask`2.InnerInvoke()
+   at System.Threading.ExecutionContext.RunInternal(ExecutionContext executionContext, ContextCallback callback, Object state)
+--- End of stack trace from previous location ---
+   at System.Threading.ExecutionContext.RunInternal(ExecutionContext executionContext, ContextCallback callback, Object state)
+   at System.Threading.Tasks.Task.ExecuteWithThreadLocal(Task& currentTaskSlot, Thread threadPoolThread)
+--- End of stack trace from previous location ---
+   at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Query.Internal.SingleQueryingEnumerable`1.AsyncEnumerator.InitializeReaderAsync(AsyncEnumerator enumerator, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.SqlServer.Storage.Internal.SqlServerExecutionStrategy.ExecuteAsync[TState,TResult](TState state, Func`4 operation, Func`4 verifySucceeded, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Query.Internal.SingleQueryingEnumerable`1.AsyncEnumerator.MoveNextAsync()
+   at Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.ToListAsync[TSource](IQueryable`1 source, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.ToListAsync[TSource](IQueryable`1 source, CancellationToken cancellationToken)
+   at MusicStore.Repositories.Implementations.RepositoryBase`1.ListAsync(Expression`1 predicate) in C:\Users\di_56\Desktop\github\MusicStoreApi\MusicStore.Repositories\Implementations\RepositoryBase.cs:line 19
+   at MusicStore.Services.Implementations.GenreService.ListAsync() in C:\Users\di_56\Desktop\github\MusicStoreApi\MusicStore.Services\Implementations\GenreService.cs:line 32
+ClientConnectionId:4b058859-1c84-43ee-9742-991d5c21ba97
+Error Number:208,State:1,Class:16
+2023-10-24 09:19:29 [WRN] - Sensitive data logging is enabled. Log entries and exception messages may include sensitive application data; this mode should only be enabled during development. 
+ 2023-10-24 09:19:30 [FTL] - "Error en ListAsync" "Exception of type 'System.Exception' was thrown." 
+ System.Exception: Exception of type 'System.Exception' was thrown.
+   at MusicStore.Services.Implementations.GenreService.ListAsync() in C:\Users\di_56\Desktop\github\MusicStoreApi\MusicStore.Services\Implementations\GenreService.cs:line 36
+2023-10-24 09:19:30 [ERR] - Error en listar generos "Exception of type 'System.Exception' was thrown." 
+ System.Exception: Exception of type 'System.Exception' was thrown.
+   at MusicStore.Services.Implementations.GenreService.ListAsync() in C:\Users\di_56\Desktop\github\MusicStoreApi\MusicStore.Services\Implementations\GenreService.cs:line 36
+2023-10-24 09:23:25 [WRN] - Sensitive data logging is enabled. Log entries and exception messages may include sensitive application data; this mode should only be enabled during development. 
+ 2023-10-24 09:28:57 [WRN] - Sensitive data logging is enabled. Log entries and exception messages may include sensitive application data; this mode should only be enabled during development. 
+ 2023-10-24 09:32:00 [WRN] - Sensitive data logging is enabled. Log entries and exception messages may include sensitive application data; this mode should only be enabled during development. 
+ 

@@ -23,6 +23,7 @@ using Serilog.Sinks.MSSqlServer;
 
 var builder = WebApplication.CreateBuilder(args);
 var connectionString = builder.Configuration.GetConnectionString("MusicStoreDb");
+var corsConfig = "MusicStoreAPI";
 
 var logger = new LoggerConfiguration()
     .WriteTo.Console(LogEventLevel.Information)
@@ -38,6 +39,22 @@ var logger = new LoggerConfiguration()
     .CreateLogger();
 
 builder.Logging.AddSerilog(logger);
+
+
+builder.Services.AddCors(setup =>
+{
+setup.AddPolicy(corsConfig, policy =>
+{
+    policy.AllowAnyOrigin();
+    policy.AllowAnyMethod();
+    policy.AllowAnyHeader();
+});
+    
+    
+});
+
+
+
 // Add services to the container.
 
 builder.Services.AddDbContext<MusicStoreDbContext>(options =>
@@ -154,6 +171,8 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseCors(corsConfig);
+
 app.MapControllers();
 
 app.MapHomeEndPoints();

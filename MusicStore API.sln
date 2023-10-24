@@ -21,6 +21,9 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "04.API REST", "04.API REST", "{C06CC60D-53B4-49DF-A945-3FB0BBA8AA91}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "06.HTML", "06.HTML", "{47308205-4F6C-4A29-B827-3D3C54CDC14F}"
+	ProjectSection(SolutionItems) = preProject
+		..\..\uno.html = ..\..\uno.html
+	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "07.Unit Test", "07.Unit Test", "{FCE4952A-6383-4AA6-BD32-65E2D0ECA300}"
 EndProject
