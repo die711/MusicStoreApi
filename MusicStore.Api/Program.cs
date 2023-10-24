@@ -25,13 +25,12 @@ var builder = WebApplication.CreateBuilder(args);
 var connectionString = builder.Configuration.GetConnectionString("MusicStoreDb");
 
 var logger = new LoggerConfiguration()
-    .WriteTo.Console(LogEventLevel.Debug)
-    .WriteTo.File("..\\log.txt",
-        outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss} [{Level:u3}] - {Message}{NewLine}{Exception}",
+    .WriteTo.Console(LogEventLevel.Information)
+    .WriteTo.File("..\\log.txt",outputTemplate:"{Timestamp:yyyy-MM-dd HH:mm:ss} [{Level:u3}] - {Message} {NewLine} {Exception}",
         rollingInterval: RollingInterval.Day,
         restrictedToMinimumLevel: LogEventLevel.Warning)
-    .WriteTo.MSSqlServer(connectionString,
-        new MSSqlServerSinkOptions
+    .WriteTo.MSSqlServer(builder.Configuration.GetConnectionString("MusicStoreDb"),
+        new MSSqlServerSinkOptions()
         {
             AutoCreateSqlTable = true,
             TableName = "ApiLogs"
@@ -209,8 +208,6 @@ app.MapPost("Users/ChangePassword", async (IUserService service, DtoChangePasswo
     return response.Success ? Results.Ok(response) : Results.BadRequest(response);
 });
 
-
-
 if (builder.Environment.IsProduction())
 {
     using var scope = app.Services.CreateScope();
@@ -226,8 +223,6 @@ if (builder.Environment.IsProduction())
             logger.Error("Error al conectarse a {ConnectionString} {Message}", connectionString, ex.Message);
         }
     }
-    
-    
 }
 
 app.Run();
