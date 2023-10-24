@@ -24,15 +24,17 @@ public class UserService : IUserService
     private readonly ICustomerRepository _customerRepository;
     private readonly ILogger<UserService> _logger;
     private readonly IOptions<AppSettings> _options;
+    private readonly IEmailService _emailService;
 
     public UserService(UserManager<MusicStoreUserIdentity> userManager, RoleManager<IdentityRole> roleManager
-        , ICustomerRepository customerRepository, ILogger<UserService> logger, IOptions<AppSettings> options)
+        , ICustomerRepository customerRepository, ILogger<UserService> logger, IOptions<AppSettings> options, IEmailService emailService)
     {
         _userManager = userManager;
         _roleManager = roleManager;
         _customerRepository = customerRepository;
         _logger = logger;
         _options = options;
+        _emailService = emailService;
     }
 
     public async Task<LoginDtoResponse> LoginAsync(LoginDtoRequest request)
@@ -144,6 +146,15 @@ public class UserService : IUserService
 
                     await _customerRepository.AddAsync(customer);
 
+
+                    await _emailService.SendEmailAsync(request.Email, $"Creacion de cuenta para {customer.FullName}",
+                        $@"
+                            <p>
+                                Se ha creado su cuenta <strong>{user.UserName}</strong> exitosamente en nuestro sistema, bienvenido
+                            </p>
+                        ");
+                    
+
                     response.Success = true;
                     response.Data = user.Id;
                 }
@@ -182,6 +193,12 @@ public class UserService : IUserService
                 throw new ApplicationException("Usuario no existe");
 
             var token =await _userManager.GeneratePasswordResetTokenAsync(userIdentity);
+
+
+            await _emailService.SendEmailAsync("di_564@hotmail.com", "Reestablecer contraseña", $@"
+                <h3> {userIdentity.FirstName}, se ha solicitado el reseteo de tu contraseña </h3>
+                <p> para reestablecer tu password copia y pega este token y no lo compartes con nadie. <strong> {token} </strong> </p>
+            ");
             
             _logger.LogInformation("Se envio correo con solicitud para reseteo de la cuenta {Email}",request.Email);
             _logger.LogInformation("tu reset token es {Token}", token);

@@ -128,11 +128,12 @@ builder.Services.AddTransient<IConcertRepository, ConcertRepository>();
 builder.Services.AddTransient<ICustomerRepository, CustomerRepository>();
 builder.Services.AddTransient<ISaleRepository, SaleRepository>();
 
+
 builder.Services.AddTransient<IGenreService, GenreService>();
 builder.Services.AddTransient<IConcertService, ConcertService>();
 builder.Services.AddTransient<IUserService, UserService>();
 builder.Services.AddTransient<ISaleService, SaleService>();
-
+builder.Services.AddTransient<IEmailService, EmailService>();
 //builder.Services.AddTransient<IFileUploader, AzureBlobStorageUploader>();
 
 if (builder.Environment.IsDevelopment())

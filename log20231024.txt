@@ -155,4 +155,37 @@ Error Number:208,State:1,Class:16
  2023-10-24 09:32:00 [WRN] - Sensitive data logging is enabled. Log entries and exception messages may include sensitive application data; this mode should only be enabled during development. 
  2023-10-24 09:40:38 [WRN] - Sensitive data logging is enabled. Log entries and exception messages may include sensitive application data; this mode should only be enabled during development. 
  2023-10-24 09:42:42 [WRN] - Sensitive data logging is enabled. Log entries and exception messages may include sensitive application data; this mode should only be enabled during development. 
+ 2023-10-24 13:51:07 [WRN] - Sensitive data logging is enabled. Log entries and exception messages may include sensitive application data; this mode should only be enabled during development. 
+ 2023-10-24 13:51:08 [WRN] - No se puede enviar el correo "Failure sending mail." 
+ System.Net.Mail.SmtpException: Failure sending mail.
+ ---> System.InvalidOperationException: The SMTP host was not specified.
+   at System.Net.Mail.SmtpClient.CheckHostAndPort()
+   at System.Net.Mail.SmtpClient.SendAsync(MailMessage message, Object userToken)
+   --- End of inner exception stack trace ---
+   at System.Net.Mail.SmtpClient.SendAsync(MailMessage message, Object userToken)
+   at System.Net.Mail.SmtpClient.SendMailAsync(MailMessage message, CancellationToken cancellationToken)
+   at System.Net.Mail.SmtpClient.SendMailAsync(MailMessage message)
+   at MusicStore.Services.Implementations.EmailService.SendEmailAsync(String email, String subject, String message) in C:\Users\di_56\Desktop\github\MusicStoreApi\MusicStore.Services\Implementations\EmailService.cs:line 47
+2023-10-24 13:51:49 [WRN] - No se puede enviar el correo "Failure sending mail." 
+ System.Net.Mail.SmtpException: Failure sending mail.
+ ---> System.InvalidOperationException: The SMTP host was not specified.
+   at System.Net.Mail.SmtpClient.CheckHostAndPort()
+   at System.Net.Mail.SmtpClient.SendAsync(MailMessage message, Object userToken)
+   --- End of inner exception stack trace ---
+   at System.Net.Mail.SmtpClient.SendAsync(MailMessage message, Object userToken)
+   at System.Net.Mail.SmtpClient.SendMailAsync(MailMessage message, CancellationToken cancellationToken)
+   at System.Net.Mail.SmtpClient.SendMailAsync(MailMessage message)
+   at MusicStore.Services.Implementations.EmailService.SendEmailAsync(String email, String subject, String message) in C:\Users\di_56\Desktop\github\MusicStoreApi\MusicStore.Services\Implementations\EmailService.cs:line 47
+2023-10-24 13:54:44 [WRN] - Sensitive data logging is enabled. Log entries and exception messages may include sensitive application data; this mode should only be enabled during development. 
+ 2023-10-24 13:56:06 [WRN] - Sensitive data logging is enabled. Log entries and exception messages may include sensitive application data; this mode should only be enabled during development. 
+ 2023-10-24 13:56:08 [WRN] - No se puede enviar el correo "Syntax error in parameters or arguments. The server response was: 5.1.5 Recipient address reserved by RFC 2606" 
+ System.Net.Mail.SmtpException: Syntax error in parameters or arguments. The server response was: 5.1.5 Recipient address reserved by RFC 2606
+   at System.Net.Mail.RecipientCommand.CheckResponse(SmtpStatusCode statusCode, String response)
+   at System.Net.Mail.SendMailAsyncResult.SendToCollectionCompleted(IAsyncResult result)
+--- End of stack trace from previous location ---
+   at System.Net.Mail.SendMailAsyncResult.End(IAsyncResult result)
+   at System.Net.Mail.SmtpClient.SendMailCallback(IAsyncResult result)
+--- End of stack trace from previous location ---
+   at MusicStore.Services.Implementations.EmailService.SendEmailAsync(String email, String subject, String message) in C:\Users\di_56\Desktop\github\MusicStoreApi\MusicStore.Services\Implementations\EmailService.cs:line 47
+2023-10-24 13:59:24 [WRN] - Sensitive data logging is enabled. Log entries and exception messages may include sensitive application data; this mode should only be enabled during development. 
  
