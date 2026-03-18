@@ -15,61 +15,44 @@ public class ConcertService : IConcertService
     private readonly ILogger<ConcertService> _logger;
     private readonly IMapper _mapper;
     private readonly IFileUploader _fileUploader;
+    private readonly IUnitOfWork _unitOfWork;
 
-    public ConcertService(IConcertRepository repository, ILogger<ConcertService> logger, IMapper mapper, IFileUploader fileUploader)
+    public ConcertService(IConcertRepository repository, ILogger<ConcertService> logger, IMapper mapper, IFileUploader fileUploader, IUnitOfWork unitOfWork)
     {
         _repository = repository;
         _logger = logger;
         _mapper = mapper;
         _fileUploader = fileUploader;
+        _unitOfWork = unitOfWork;
     }
-    
-    
+
+
     public async Task<BaseResponsePagination<ConcertDtoResponse>> ListAsync(string? filter, int page, int rows)
     {
         var response = new BaseResponsePagination<ConcertDtoResponse>();
 
-        try
-        {
-            var tuple = await _repository.ListAsync(filter, page, rows);
-            response.Data = tuple.Collection.Select(v => _mapper.Map<ConcertDtoResponse>(v)).ToList();
-           // response.Data = _mapper.Map<ICollection<ConcertDtoResponse>>(tupla.Collection);
-            response.TotalPages = Utilities.GetTotalPages(tuple.Total, rows);
-            response.Success = true;
-        }
-
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error al listar los conciertos {Message}", ex.Message);
-            response.ErrorMessage = "Error al listar los conciertos";
-            response.Success = false;
-        }
-        
+        var tuple = await _repository.ListAsync(filter, page, rows);
+        response.Data = tuple.Collection.Select(v => _mapper.Map<ConcertDtoResponse>(v)).ToList();
+        // response.Data = _mapper.Map<ICollection<ConcertDtoResponse>>(tupla.Collection);
+        response.TotalPages = Utilities.GetTotalPages(tuple.Total, rows);
+        response.Success = true;
         return response;
     }
 
-    
+
     public async Task<BaseResponseGeneric<ConcertSingleDtoResponse>> FindByIdAsync(long id)
     {
         var response = new BaseResponseGeneric<ConcertSingleDtoResponse>();
-        try
-        {
-            var concert =await _repository.FindByIdAsync(id);
+        var concert = await _repository.FindByIdAsync(id);
 
-            if (concert is null)
-            {
-                response.ErrorMessage = $"No se encontro el concierto con id {id}";
-                return response;
-            }
-
-            response.Data = _mapper.Map<ConcertSingleDtoResponse>(concert);
-            response.Success = true;
-        }
-        catch (Exception ex)
+        if (concert is null)
         {
-            _logger.LogError(ex, "Error al obtener el concierto");
-            response.ErrorMessage = "Error al obtener el concierto";
+            response.ErrorMessage = $"No se encontro el concierto con id {id}";
+            return response;
         }
+
+        response.Data = _mapper.Map<ConcertSingleDtoResponse>(concert);
+        response.Success = true;
 
         return response;
     }
@@ -78,20 +61,13 @@ public class ConcertService : IConcertService
     {
         var response = new BaseResponseGeneric<long>();
 
-        try
-        {
-            var concert = _mapper.Map<Concert>(request);
-            concert.ImageUrl = await _fileUploader.UploadFileAsync(request.Base64Image, request.FileName);
-            
-            await _repository.AddAsync(concert);
-            response.Data = concert.Id;
-            response.Success = true;
-        }
-        catch(Exception ex)
-        {
-            _logger.LogError(ex, "Error al agregar el concierto {Message}", ex.Message);
-            response.ErrorMessage = "Error al agregar el concierto";
-        }
+        var concert = _mapper.Map<Concert>(request);
+        concert.ImageUrl = await _fileUploader.UploadFileAsync(request.Base64Image, request.FileName);
+
+        await _repository.AddAsync(concert);
+        await _unitOfWork.SaveChangesAsync();
+        response.Data = concert.Id;
+        response.Success = true;
 
         return response;
     }
@@ -101,29 +77,22 @@ public class ConcertService : IConcertService
     {
         var response = new BaseResponse();
 
-        try
+        var concert = await _repository.FindByIdAsync(id);
+
+        if (concert == null)
         {
-            var concert = await _repository.FindByIdAsync(id);
-
-            if (concert == null)
-            {
-                response.ErrorMessage = "No se encontro el concierto";
-                return response;
-            }
-
-            _mapper.Map(request, concert);
-
-            if (!string.IsNullOrEmpty(request.FileName))
-                concert.ImageUrl = await _fileUploader.UploadFileAsync(request.Base64Image, request.FileName);
-            
-            await _repository.UpdateAsync();
-            response.Success = true;
+            response.ErrorMessage = "No se encontro el concierto";
+            return response;
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error al actualizar el concierto {Message}", ex.Message);
-            response.ErrorMessage = "Error al actualizar el concierto";
-        }
+
+        _mapper.Map(request, concert);
+
+        if (!string.IsNullOrEmpty(request.FileName))
+            concert.ImageUrl = await _fileUploader.UploadFileAsync(request.Base64Image, request.FileName);
+
+        await _repository.UpdateAsync();
+        await _unitOfWork.SaveChangesAsync();
+        response.Success = true;
 
         return response;
 
@@ -132,17 +101,9 @@ public class ConcertService : IConcertService
     public async Task<BaseResponse> DeleteAsync(long id)
     {
         var response = new BaseResponse();
-        try
-        {
-            await _repository.DeleteAsync(id);
-            response.Success = true;
-
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex,"Error al eliminar el concierto con el id {id}", id);
-            response.ErrorMessage = "Error al eliminar el concierto";
-        }
+        await _repository.DeleteAsync(id);
+        await _unitOfWork.SaveChangesAsync();
+        response.Success = true;
 
         return response;
     }
@@ -151,19 +112,13 @@ public class ConcertService : IConcertService
     {
         var response = new BaseResponse();
 
-        try
-        {
-            await _repository.FinalizeAsync(id);
-            response.Success = true;
-        }
-        catch (Exception ex)
-        {
-            response.ErrorMessage = _logger.LogMessage(ex, nameof(FinalizeAsync));
-        }
+        await _repository.FinalizeAsync(id);
+        await _unitOfWork.SaveChangesAsync();
+        response.Success = true;
 
         return response;
 
     }
-    
-    
+
+
 }

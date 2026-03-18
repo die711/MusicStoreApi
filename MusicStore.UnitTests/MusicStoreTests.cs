@@ -8,6 +8,7 @@ using MusicStore.DataAccess;
 using MusicStore.Dto.Response;
 using MusicStore.Entities;
 using MusicStore.Repositories.Implementations;
+using MusicStore.Repositories.Interfaces;
 using MusicStore.Services.Implementations;
 using MusicStore.Services.Profiles;
 
@@ -74,7 +75,9 @@ public class MusicStoreTests
         var mockLogger = new Mock<ILogger<GenreService>>();
         var mapper = new Mapper(new MapperConfiguration(p => p.AddProfile(typeof(GenreProfile))));
 
-        var genreService = new GenreService(genreRepository, mockLogger.Object, mapper);
+        var mockUnitOfWork = new Mock<IUnitOfWork>();
+
+        var genreService = new GenreService(genreRepository, mockLogger.Object, mapper, mockUnitOfWork.Object);
 
         var response = await genreService.ListAsync();
 
@@ -99,7 +102,7 @@ public class MusicStoreTests
 
         var count = await dbContext.Set<Genre>().CountAsync();
         var expected = 4;
-        
+
         Assert.Equal(expected, count);
     }
 
@@ -116,9 +119,10 @@ public class MusicStoreTests
 
         var mapper = new Mock<IMapper>();
         mapper.Setup(x => x.Map<GenreDtoResponse>(It.IsAny<Genre>())).Returns(new GenreDtoResponse());
-        var service = new GenreService(repository, mockLogger.Object, mapper.Object);
+        var mockUnitOfWork = new Mock<IUnitOfWork>();
+        var service = new GenreService(repository, mockLogger.Object, mapper.Object, mockUnitOfWork.Object);
         var response = await service.FindByIdAsync(id);
-        
+
         Assert.Equal(expected, response.Success);
     }
 }

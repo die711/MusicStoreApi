@@ -7,7 +7,10 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using FluentValidation;
+using FluentValidation.AspNetCore;
 using MusicStore.Api.Endpoints;
+using MusicStore.Dto.Validations;
 using MusicStore.DataAccess;
 using MusicStore.Dto.Request;
 using MusicStore.Entities;
@@ -27,7 +30,7 @@ var corsConfig = "MusicStoreAPI";
 
 var logger = new LoggerConfiguration()
     .WriteTo.Console(LogEventLevel.Information)
-    .WriteTo.File("..\\log.txt",outputTemplate:"{Timestamp:yyyy-MM-dd HH:mm:ss} [{Level:u3}] - {Message} {NewLine} {Exception}",
+    .WriteTo.File("..\\log.txt", outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss} [{Level:u3}] - {Message} {NewLine} {Exception}",
         rollingInterval: RollingInterval.Day,
         restrictedToMinimumLevel: LogEventLevel.Warning)
     .WriteTo.MSSqlServer(builder.Configuration.GetConnectionString("MusicStoreDb"),
@@ -43,14 +46,14 @@ builder.Logging.AddSerilog(logger);
 
 builder.Services.AddCors(setup =>
 {
-setup.AddPolicy(corsConfig, policy =>
-{
-    policy.AllowAnyOrigin();
-    policy.AllowAnyMethod();
-    policy.AllowAnyHeader();
-});
-    
-    
+    setup.AddPolicy(corsConfig, policy =>
+    {
+        policy.AllowAnyOrigin();
+        policy.AllowAnyMethod();
+        policy.AllowAnyHeader();
+    });
+
+
 });
 
 
@@ -83,6 +86,8 @@ builder.Services.AddIdentity<MusicStoreUserIdentity, IdentityRole>(policies =>
     .AddDefaultTokenProviders();
 
 builder.Services.AddControllers();
+builder.Services.AddFluentValidationAutoValidation();
+builder.Services.AddValidatorsFromAssemblyContaining<GenreDtoRequestValidator>();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
@@ -126,6 +131,7 @@ builder.Services.AddAutoMapper(config =>
 builder.Services.AddTransient<IGenreRepository, GenreRepository>();
 builder.Services.AddTransient<IConcertRepository, ConcertRepository>();
 builder.Services.AddTransient<ICustomerRepository, CustomerRepository>();
+builder.Services.AddTransient<IUnitOfWork, UnitOfWork>();
 builder.Services.AddTransient<ISaleRepository, SaleRepository>();
 
 
@@ -170,6 +176,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseMiddleware<MusicStore.Api.Middlewares.ExceptionMiddleware>();
 app.UseAuthentication();
 app.UseAuthorization();
 app.UseCors(corsConfig);
@@ -193,7 +200,7 @@ app.MapPost("Sales",
 
         var response = await service.AddAsync(email, request);
         return response.Success ? Results.Ok(response) : Results.BadRequest(response);
-       // return Results.Ok();
+        // return Results.Ok();
     }).RequireAuthorization();
 
 
@@ -202,7 +209,7 @@ app.MapPost("Users/Register", async (IUserService service, RegisterDtoRequest re
 {
     var response = await service.RegisterAsync(request);
     return response.Success ? Results.Ok(response) : Results.BadRequest(response);
-});
+}).AddEndpointFilter<MusicStore.Api.Filters.ValidationFilter<RegisterDtoRequest>>();
 
 app.MapPost("Users/Login", async (IUserService service, LoginDtoRequest request) =>
 {

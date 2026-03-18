@@ -54,7 +54,6 @@ public class RepositoryBase<TEntity> : IRepositoryBase<TEntity> where TEntity : 
     public virtual async Task<long> AddAsync(TEntity entity)
     {
         await Context.Set<TEntity>().AddAsync(entity);
-        await Context.SaveChangesAsync();
 
         return entity.Id;
     }
@@ -66,7 +65,8 @@ public class RepositoryBase<TEntity> : IRepositoryBase<TEntity> where TEntity : 
 
     public virtual async Task UpdateAsync()
     {
-        await Context.SaveChangesAsync();
+        // El guardado ahora se delega al UnitOfWork.
+        await Task.CompletedTask;
     }
 
     public async Task DeleteAsync(long id)

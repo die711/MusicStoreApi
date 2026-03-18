@@ -28,6 +28,7 @@
       <ProjectReference Include="..\MusicStore.DataAccess\MusicStore.DataAccess.csproj" />
       <ProjectReference Include="..\MusicStore.Repositories\MusicStore.Repositories.csproj" />
       <ProjectReference Include="..\MusicStore.Services\MusicStore.Services.csproj" />
+      <ProjectReference Include="..\MusicStore.Api\MusicStore.Api.csproj" />
     </ItemGroup>
 
 </Project>

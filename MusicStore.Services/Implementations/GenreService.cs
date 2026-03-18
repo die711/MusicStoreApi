@@ -15,32 +15,24 @@ public class GenreService : IGenreService
     private readonly IGenreRepository _repository;
     private readonly ILogger<GenreService> _logger;
     private readonly IMapper _mapper;
+    private readonly IUnitOfWork _unitOfWork;
 
-    public GenreService(IGenreRepository repository, ILogger<GenreService> logger, IMapper mapper)
+    public GenreService(IGenreRepository repository, ILogger<GenreService> logger, IMapper mapper, IUnitOfWork unitOfWork)
     {
         _repository = repository;
         _logger = logger;
         _mapper = mapper;
+        _unitOfWork = unitOfWork;
     }
-    
+
     public async Task<BaseResponseGeneric<ICollection<GenreDtoResponse>>> ListAsync()
     {
         var response = new BaseResponseGeneric<ICollection<GenreDtoResponse>>();
 
-        try
-        {
-            var collection = await _repository.ListAsync(x => x.Status);
+        var collection = await _repository.ListAsync(x => x.Status);
 
-            response.Data = _mapper.Map<ICollection<GenreDtoResponse>>(collection);
-            response.Success = true;
-          
-        }
-        catch (Exception ex)
-        {
-           // response.ErrorMessage = _logger.LogMessage(ex, nameof(ListAsync));
-            _logger.LogError(ex, "Error en listar generos {Message}", ex.Message);
-            response.ErrorMessage = ex.Message;
-        }
+        response.Data = _mapper.Map<ICollection<GenreDtoResponse>>(collection);
+        response.Success = true;
 
         return response;
     }
@@ -49,25 +41,17 @@ public class GenreService : IGenreService
     {
         var response = new BaseResponseGeneric<GenreDtoResponse>();
 
-        try
-        {
-            var entity = await _repository.FindByIdAsync(id);
+        var entity = await _repository.FindByIdAsync(id);
 
-            if (entity == null)
-            {
-                response.Success = false;
-                response.ErrorMessage = "No se encontro el genero";
-                return response;
-            }
-            
-            response.Data = _mapper.Map<GenreDtoResponse>(entity);
-            response.Success = true;
-        }
-        catch (Exception ex)
+        if (entity == null)
         {
-            _logger.LogCritical(ex, "Error buscando genero con id {Message} ", ex.Message);
-            response.ErrorMessage = "Error al buscar un genero";
+            response.Success = false;
+            response.ErrorMessage = "No se encontro el genero";
+            return response;
         }
+
+        response.Data = _mapper.Map<GenreDtoResponse>(entity);
+        response.Success = true;
 
         return response;
     }
@@ -76,16 +60,9 @@ public class GenreService : IGenreService
     {
         var response = new BaseResponseGeneric<long>();
 
-        try
-        {
-            response.Data = await _repository.AddAsync(_mapper.Map<Genre>(request));
-            response.Success = true;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogCritical(ex, "Error en generos {Message}", ex.Message);
-            response.ErrorMessage = ex.Message;
-        }
+        response.Data = await _repository.AddAsync(_mapper.Map<Genre>(request));
+        await _unitOfWork.SaveChangesAsync();
+        response.Success = true;
 
         return response;
     }
@@ -94,26 +71,19 @@ public class GenreService : IGenreService
     {
         var response = new BaseResponse();
 
-        try
-        {
-            var entity = await _repository.FindByIdAsync(id);
+        var entity = await _repository.FindByIdAsync(id);
 
-            if (entity == null)
-            {
-                response.Success = false;
-                response.ErrorMessage = "No se encontro el genero";
-                return response;
-            }
-
-            _mapper.Map(request, entity);
-            await _repository.UpdateAsync();
-            response.Success = true;
-        }
-        catch (Exception ex)
+        if (entity == null)
         {
-            _logger.LogCritical("Error en Generos {Message}", ex.Message);
-            response.ErrorMessage = ex.Message;
+            response.Success = false;
+            response.ErrorMessage = "No se encontro el genero";
+            return response;
         }
+
+        _mapper.Map(request, entity);
+        await _repository.UpdateAsync();
+        await _unitOfWork.SaveChangesAsync();
+        response.Success = true;
 
         return response;
     }
@@ -122,17 +92,9 @@ public class GenreService : IGenreService
     {
         var response = new BaseResponse();
 
-        try
-        {
-            await _repository.DeleteAsync(id);
-            response.Success = true;
-
-        }
-        catch (Exception ex)
-        {
-            _logger.LogCritical(ex, "Error al eliminar generos {Message}", ex.Message);
-            response.ErrorMessage = ex.Message;
-        }
+        await _repository.DeleteAsync(id);
+        await _unitOfWork.SaveChangesAsync();
+        response.Success = true;
 
         return response;
 

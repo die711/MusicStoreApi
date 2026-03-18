@@ -17,69 +17,61 @@ public class SaleService : ISaleService
     private readonly IMapper _mapper;
     private readonly IConcertRepository _concertRepository;
     private readonly ICustomerRepository _customerRepository;
+    private readonly IUnitOfWork _unitOfWork;
 
     public SaleService(ISaleRepository saleRepository, ILogger<SaleService> logger, IMapper mapper,
-                       IConcertRepository concertRepository, ICustomerRepository customerRepository)
+                       IConcertRepository concertRepository, ICustomerRepository customerRepository, IUnitOfWork unitOfWork)
     {
         _saleRepository = saleRepository;
         _concertRepository = concertRepository;
         _customerRepository = customerRepository;
         _logger = logger;
         _mapper = mapper;
+        _unitOfWork = unitOfWork;
     }
 
     public async Task<BaseResponseGeneric<long>> AddAsync(string email, SaleDtoRequest request)
     {
         var response = new BaseResponseGeneric<long>();
 
-        try
-        {
-           // await _saleRepository.CreateTransaction();
-            
-            var entity = _mapper.Map<Sale>(request);
+        // await _saleRepository.CreateTransaction();
 
-            var customer = await _customerRepository.GetByEmailAsync(email);
+        var entity = _mapper.Map<Sale>(request);
 
-            if (customer is null)
-                throw new InvalidOperationException($"No se encontre el usuario con ese email {email}");
+        var customer = await _customerRepository.GetByEmailAsync(email);
 
-            // if (customer is null)
-            // {
-            //     //vamos a crear en esta misma operacion el registro de customer
-            //     customer = new Customer
-            //     {
-            //         Email = request.Email,
-            //         FullName = request.FullName
-            //     };
-            //     
-            //     //Esto es cuando esperamos a que el registro se grabe primero para obtener el id creado de la base de datos
-            //     customer.Id = await _customerRepository.AddAsync(customer);
-            //
-            // }
-            
-            entity.CustomerId = customer.Id;
+        if (customer is null)
+            throw new InvalidOperationException($"No se encontre el usuario con ese email {email}");
 
-            //entity.Customer = customer;
+        // if (customer is null)
+        // {
+        //     //vamos a crear en esta misma operacion el registro de customer
+        //     customer = new Customer
+        //     {
+        //         Email = request.Email,
+        //         FullName = request.FullName
+        //     };
+        //     
+        //     //Esto es cuando esperamos a que el registro se grabe primero para obtener el id creado de la base de datos
+        //     customer.Id = await _customerRepository.AddAsync(customer);
+        //
+        // }
 
-            var concert = await _concertRepository.FindByIdAsync(request.ConcertId);
+        entity.CustomerId = customer.Id;
 
-            if (concert is null)
-                throw new InvalidOperationException($"No se encontro el concierto con el ID {request.ConcertId}");
+        //entity.Customer = customer;
 
-            entity.Total = entity.Quantity * concert.UnitPrice;
+        var concert = await _concertRepository.FindByIdAsync(request.ConcertId);
 
-            response.Data = await _saleRepository.AddAsync(entity);
-            await _saleRepository.UpdateAsync();
+        if (concert is null)
+            throw new InvalidOperationException($"No se encontro el concierto con el ID {request.ConcertId}");
 
-            response.Success = true;
+        entity.Total = entity.Quantity * concert.UnitPrice;
 
-        }
-        catch (Exception ex)
-        {
-            //await _saleRepository.RollBackAsync();
-            _logger.LogError(ex, "Error adding sale");
-            response.ErrorMessage = ex.Message;
-        }
+        response.Data = await _saleRepository.AddAsync(entity);
+        await _unitOfWork.SaveChangesAsync();
+
+        response.Success = true;
 
         return response;
     }
@@ -87,28 +79,20 @@ public class SaleService : ISaleService
     public async Task<BaseResponsePagination<SaleDtoResponse>> ListAsync(DateTime dateStart, DateTime dateEnd, int page, int rows)
     {
         var response = new BaseResponsePagination<SaleDtoResponse>();
-        
-        try
-        {
-            var end = dateEnd.AddHours(23);
 
-            Expression<Func<Sale, bool>> predicate = p => p.SaleDate >= dateStart && p.SaleDate <= end;
+        var end = dateEnd.AddHours(23);
 
-            var tuple = await _saleRepository.ListAsync(predicate,
-                p => _mapper.Map<SaleDtoResponse>(p),
-                x => x.OperationNumber,
-                page, rows);
+        Expression<Func<Sale, bool>> predicate = p => p.SaleDate >= dateStart && p.SaleDate <= end;
 
-            response.Data = tuple.Collection;
-            response.TotalPages = Utilities.GetTotalPages(tuple.Total, rows);
+        var tuple = await _saleRepository.ListAsync(predicate,
+            p => _mapper.Map<SaleDtoResponse>(p),
+            x => x.OperationNumber,
+            page, rows);
 
-            response.Success = true;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogCritical(ex, "Error al listar {Message}", ex.Message);
-            response.ErrorMessage = ex.Message;
-        }
+        response.Data = tuple.Collection;
+        response.TotalPages = Utilities.GetTotalPages(tuple.Total, rows);
+
+        response.Success = true;
 
         return response;
     }
@@ -119,26 +103,16 @@ public class SaleService : ISaleService
         var response = new BaseResponsePagination<SaleDtoResponse>();
         Expression<Func<Sale, bool>> predicate = p =>
             p.Customer.Email.Equals(email) && p.Concert.Title.Contains(filter ?? string.Empty);
-        
-        try
-        {
-            var tuple = await _saleRepository.ListAsync(predicate, 
-                p => _mapper.Map<SaleDtoResponse>(p),
-                x => x.OperationNumber,
-                page, rows);
 
-            response.Data = tuple.Collection;
-            response.TotalPages = Utils.Utilities.GetTotalPages(tuple.Total, rows);
+        var tuple = await _saleRepository.ListAsync(predicate,
+            p => _mapper.Map<SaleDtoResponse>(p),
+            x => x.OperationNumber,
+            page, rows);
 
-            response.Success = true;
+        response.Data = tuple.Collection;
+        response.TotalPages = Utils.Utilities.GetTotalPages(tuple.Total, rows);
 
-
-        }
-        catch (Exception ex)
-        {
-            _logger.LogCritical(ex, "Error al listar {message}", ex.Message);
-            response.ErrorMessage = "Error al listar las ventas";
-        }
+        response.Success = true;
 
         return response;
 
@@ -148,22 +122,14 @@ public class SaleService : ISaleService
     {
         var response = new BaseResponseGeneric<SaleDtoResponse>();
 
-        try
-        {
-            var sale = await _saleRepository.FindByIdAsync(id);
+        var sale = await _saleRepository.FindByIdAsync(id);
 
-            if (sale == null)
-                throw new Exception("Venta no existe");
+        if (sale == null)
+            throw new Exception("Venta no existe");
 
-            response.Data = _mapper.Map<SaleDtoResponse>(sale);
-            response.Success = true;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogCritical(ex,"Error al obtener la Venta {Message}", ex.Message);
-            response.ErrorMessage = "Error al obtener la venta";
-        }
-        
+        response.Data = _mapper.Map<SaleDtoResponse>(sale);
+        response.Success = true;
+
         return response;
     }
 
@@ -171,19 +137,11 @@ public class SaleService : ISaleService
     {
         var response = new BaseResponseGeneric<ICollection<ReportDtoResponse>>();
 
-        try
-        {
-            var list = await _saleRepository.GetReportSaleAsync(dateStart, dateEnd);
-            response.Data = list.Select(p => _mapper.Map<ReportDtoResponse>(p)).ToList();
-            response.Success = true;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error al obtener el reporte de ventas");
-            response.ErrorMessage = "Error en obtener el reporte";
-        }
-        
-        
+        var list = await _saleRepository.GetReportSaleAsync(dateStart, dateEnd);
+        response.Data = list.Select(p => _mapper.Map<ReportDtoResponse>(p)).ToList();
+        response.Success = true;
+
+
         return response;
 
     }
