@@ -14,8 +14,6 @@ using MusicStore.Dto.Validations;
 using MusicStore.DataAccess;
 using MusicStore.Dto.Request;
 using MusicStore.Entities;
-using MusicStore.Repositories.Implementations;
-using MusicStore.Repositories.Interfaces;
 using MusicStore.Services.Implementations;
 using MusicStore.Services.Interfaces;
 using MusicStore.Services.Profiles;
@@ -128,11 +126,7 @@ builder.Services.AddAutoMapper(config =>
     config.AddProfile<SaleProfile>();
 });
 
-builder.Services.AddTransient<IGenreRepository, GenreRepository>();
-builder.Services.AddTransient<IConcertRepository, ConcertRepository>();
-builder.Services.AddTransient<ICustomerRepository, CustomerRepository>();
-builder.Services.AddTransient<IUnitOfWork, UnitOfWork>();
-builder.Services.AddTransient<ISaleRepository, SaleRepository>();
+
 
 
 builder.Services.AddTransient<IGenreService, GenreService>();

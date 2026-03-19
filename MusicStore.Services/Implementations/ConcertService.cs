@@ -1,9 +1,10 @@
 ﻿using AutoMapper;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using MusicStore.DataAccess;
 using MusicStore.Dto.Request;
 using MusicStore.Dto.Response;
 using MusicStore.Entities;
-using MusicStore.Repositories.Interfaces;
 using MusicStore.Services.Interfaces;
 using MusicStore.Services.Utils;
 
@@ -11,19 +12,17 @@ namespace MusicStore.Services.Implementations;
 
 public class ConcertService : IConcertService
 {
-    private readonly IConcertRepository _repository;
+    private readonly MusicStoreDbContext _context;
     private readonly ILogger<ConcertService> _logger;
     private readonly IMapper _mapper;
     private readonly IFileUploader _fileUploader;
-    private readonly IUnitOfWork _unitOfWork;
 
-    public ConcertService(IConcertRepository repository, ILogger<ConcertService> logger, IMapper mapper, IFileUploader fileUploader, IUnitOfWork unitOfWork)
+    public ConcertService(MusicStoreDbContext context, ILogger<ConcertService> logger, IMapper mapper, IFileUploader fileUploader)
     {
-        _repository = repository;
+        _context = context;
         _logger = logger;
         _mapper = mapper;
         _fileUploader = fileUploader;
-        _unitOfWork = unitOfWork;
     }
 
 
@@ -31,10 +30,21 @@ public class ConcertService : IConcertService
     {
         var response = new BaseResponsePagination<ConcertDtoResponse>();
 
-        var tuple = await _repository.ListAsync(filter, page, rows);
-        response.Data = tuple.Collection.Select(v => _mapper.Map<ConcertDtoResponse>(v)).ToList();
-        // response.Data = _mapper.Map<ICollection<ConcertDtoResponse>>(tupla.Collection);
-        response.TotalPages = Utilities.GetTotalPages(tuple.Total, rows);
+        var query = _context.Set<Concert>()
+            .Where(p => p.Status && p.Title.Contains(filter ?? string.Empty));
+
+        var collection = await query
+            .OrderBy(p => p.Title)
+            .Skip((page - 1) * rows)
+            .Take(rows)
+            .AsNoTracking()
+            .Select(v => _mapper.Map<ConcertDtoResponse>(v))
+            .ToListAsync();
+
+        var total = await query.CountAsync();
+
+        response.Data = collection;
+        response.TotalPages = Utilities.GetTotalPages(total, rows);
         response.Success = true;
         return response;
     }
@@ -43,7 +53,9 @@ public class ConcertService : IConcertService
     public async Task<BaseResponseGeneric<ConcertSingleDtoResponse>> FindByIdAsync(long id)
     {
         var response = new BaseResponseGeneric<ConcertSingleDtoResponse>();
-        var concert = await _repository.FindByIdAsync(id);
+        var concert = await _context.Set<Concert>()
+            .Include(p => p.Genre)
+            .FirstOrDefaultAsync(x => x.Id == id);
 
         if (concert is null)
         {
@@ -64,8 +76,8 @@ public class ConcertService : IConcertService
         var concert = _mapper.Map<Concert>(request);
         concert.ImageUrl = await _fileUploader.UploadFileAsync(request.Base64Image, request.FileName);
 
-        await _repository.AddAsync(concert);
-        await _unitOfWork.SaveChangesAsync();
+        await _context.Set<Concert>().AddAsync(concert);
+        await _context.SaveChangesAsync();
         response.Data = concert.Id;
         response.Success = true;
 
@@ -77,7 +89,7 @@ public class ConcertService : IConcertService
     {
         var response = new BaseResponse();
 
-        var concert = await _repository.FindByIdAsync(id);
+        var concert = await _context.Set<Concert>().FindAsync(id);
 
         if (concert == null)
         {
@@ -90,8 +102,7 @@ public class ConcertService : IConcertService
         if (!string.IsNullOrEmpty(request.FileName))
             concert.ImageUrl = await _fileUploader.UploadFileAsync(request.Base64Image, request.FileName);
 
-        await _repository.UpdateAsync();
-        await _unitOfWork.SaveChangesAsync();
+        await _context.SaveChangesAsync();
         response.Success = true;
 
         return response;
@@ -101,8 +112,16 @@ public class ConcertService : IConcertService
     public async Task<BaseResponse> DeleteAsync(long id)
     {
         var response = new BaseResponse();
-        await _repository.DeleteAsync(id);
-        await _unitOfWork.SaveChangesAsync();
+        var entity = await _context.Set<Concert>().FindAsync(id);
+        if (entity != null)
+        {
+            entity.Status = false;
+            await _context.SaveChangesAsync();
+        }
+        else
+        {
+            throw new InvalidOperationException($"No se encontro el registro con el Id {id}");
+        }
         response.Success = true;
 
         return response;
@@ -112,8 +131,16 @@ public class ConcertService : IConcertService
     {
         var response = new BaseResponse();
 
-        await _repository.FinalizeAsync(id);
-        await _unitOfWork.SaveChangesAsync();
+        var entity = await _context.Set<Concert>().FindAsync(id);
+        if (entity is not null)
+        {
+            entity.Finalized = true;
+            await _context.SaveChangesAsync();
+        }
+        else
+        {
+            throw new InvalidOperationException($"Unable to finalize entity {id}");
+        }
         response.Success = true;
 
         return response;

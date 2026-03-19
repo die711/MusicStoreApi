@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using MusicStore.Dto.Request;
 using MusicStore.Entities;
-using MusicStore.Repositories.Interfaces;
 using MusicStore.Services.Interfaces;
 
 namespace MusicStore.Api.Controllers;
@@ -61,10 +60,10 @@ public class ConcertsController : ControllerBase
         var response = await _service.FinalizeAsync(id);
         return Ok(response);
     }
-    
-    
-    
-   
+
+
+
+
 
 
 }

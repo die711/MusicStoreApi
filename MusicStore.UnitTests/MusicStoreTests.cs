@@ -7,8 +7,6 @@ using Moq;
 using MusicStore.DataAccess;
 using MusicStore.Dto.Response;
 using MusicStore.Entities;
-using MusicStore.Repositories.Implementations;
-using MusicStore.Repositories.Interfaces;
 using MusicStore.Services.Implementations;
 using MusicStore.Services.Profiles;
 
@@ -45,21 +43,19 @@ public class MusicStoreTests
     }
 
     [Fact]
-    public async Task GenreRepositoryListTest()
+    public async Task GenreListTest()
     {
         var dbContext = await ArrangeDatabase();
-        var genreRepository = new GenreRepository(dbContext);
-        var response = await genreRepository.ListAsync(p => p.Status);
+        var response = await dbContext.Set<Genre>().Where(p => p.Status).ToListAsync();
 
         Assert.Equal(5, response.Count);
     }
 
     [Fact]
-    public async Task GenreRepositoryFirstTest()
+    public async Task GenreFirstTest()
     {
         var dbContext = await ArrangeDatabase();
-        var genreRepository = new GenreRepository(dbContext);
-        var response = await genreRepository.ListAsync(p => p.Status);
+        var response = await dbContext.Set<Genre>().Where(p => p.Status).ToListAsync();
 
         var genre = response.FirstOrDefault();
 
@@ -70,14 +66,11 @@ public class MusicStoreTests
     public async Task ListGenreTest()
     {
         var dbContext = await ArrangeDatabase();
-        var genreRepository = new GenreRepository(dbContext);
 
         var mockLogger = new Mock<ILogger<GenreService>>();
         var mapper = new Mapper(new MapperConfiguration(p => p.AddProfile(typeof(GenreProfile))));
 
-        var mockUnitOfWork = new Mock<IUnitOfWork>();
-
-        var genreService = new GenreService(genreRepository, mockLogger.Object, mapper, mockUnitOfWork.Object);
+        var genreService = new GenreService(dbContext, mockLogger.Object, mapper);
 
         var response = await genreService.ListAsync();
 
@@ -114,13 +107,12 @@ public class MusicStoreTests
     public async Task GenreGetByIdTest(long id, bool expected)
     {
         var dbContext = await ArrangeDatabase();
-        var repository = new GenreRepository(dbContext);
         var mockLogger = new Mock<ILogger<GenreService>>();
 
         var mapper = new Mock<IMapper>();
         mapper.Setup(x => x.Map<GenreDtoResponse>(It.IsAny<Genre>())).Returns(new GenreDtoResponse());
-        var mockUnitOfWork = new Mock<IUnitOfWork>();
-        var service = new GenreService(repository, mockLogger.Object, mapper.Object, mockUnitOfWork.Object);
+        
+        var service = new GenreService(dbContext, mockLogger.Object, mapper.Object);
         var response = await service.FindByIdAsync(id);
 
         Assert.Equal(expected, response.Success);

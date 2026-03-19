@@ -4,6 +4,7 @@ using System.Security.Claims;
 using System.Text;
 using Azure;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
@@ -11,7 +12,6 @@ using MusicStore.DataAccess;
 using MusicStore.Dto.Request;
 using MusicStore.Dto.Response;
 using MusicStore.Entities;
-using MusicStore.Repositories.Interfaces;
 using MusicStore.Services.Interfaces;
 using MusicStore.Services.Utils;
 
@@ -21,22 +21,20 @@ public class UserService : IUserService
 {
     private readonly UserManager<MusicStoreUserIdentity> _userManager;
     private readonly RoleManager<IdentityRole> _roleManager;
-    private readonly ICustomerRepository _customerRepository;
+    private readonly MusicStoreDbContext _context;
     private readonly ILogger<UserService> _logger;
     private readonly IOptions<AppSettings> _options;
     private readonly IEmailService _emailService;
-    private readonly IUnitOfWork _unitOfWork;
 
     public UserService(UserManager<MusicStoreUserIdentity> userManager, RoleManager<IdentityRole> roleManager
-        , ICustomerRepository customerRepository, ILogger<UserService> logger, IOptions<AppSettings> options, IEmailService emailService, IUnitOfWork unitOfWork)
+        , MusicStoreDbContext context, ILogger<UserService> logger, IOptions<AppSettings> options, IEmailService emailService)
     {
         _userManager = userManager;
         _roleManager = roleManager;
-        _customerRepository = customerRepository;
+        _context = context;
         _logger = logger;
         _options = options;
         _emailService = emailService;
-        _unitOfWork = unitOfWork;
     }
 
     public async Task<LoginDtoResponse> LoginAsync(LoginDtoRequest request)
@@ -133,8 +131,8 @@ public class UserService : IUserService
                     Email = request.Email
                 };
 
-                await _customerRepository.AddAsync(customer);
-                await _unitOfWork.SaveChangesAsync();
+                await _context.Set<Customer>().AddAsync(customer);
+                await _context.SaveChangesAsync();
 
 
                 await _emailService.SendEmailAsync(request.Email, $"Creacion de cuenta para {customer.FullName}",

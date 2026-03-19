@@ -1,10 +1,12 @@
 ﻿using System.Linq.Expressions;
 using AutoMapper;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using MusicStore.DataAccess;
 using MusicStore.Dto.Request;
 using MusicStore.Dto.Response;
 using MusicStore.Entities;
-using MusicStore.Repositories.Interfaces;
+using MusicStore.Entities.Info;
 using MusicStore.Services.Interfaces;
 using MusicStore.Services.Utils;
 
@@ -12,65 +14,48 @@ namespace MusicStore.Services.Implementations;
 
 public class SaleService : ISaleService
 {
-    private readonly ISaleRepository _saleRepository;
+    private readonly MusicStoreDbContext _context;
     private readonly ILogger<SaleService> _logger;
     private readonly IMapper _mapper;
-    private readonly IConcertRepository _concertRepository;
-    private readonly ICustomerRepository _customerRepository;
-    private readonly IUnitOfWork _unitOfWork;
 
-    public SaleService(ISaleRepository saleRepository, ILogger<SaleService> logger, IMapper mapper,
-                       IConcertRepository concertRepository, ICustomerRepository customerRepository, IUnitOfWork unitOfWork)
+    public SaleService(MusicStoreDbContext context, ILogger<SaleService> logger, IMapper mapper)
     {
-        _saleRepository = saleRepository;
-        _concertRepository = concertRepository;
-        _customerRepository = customerRepository;
+        _context = context;
         _logger = logger;
         _mapper = mapper;
-        _unitOfWork = unitOfWork;
     }
 
     public async Task<BaseResponseGeneric<long>> AddAsync(string email, SaleDtoRequest request)
     {
         var response = new BaseResponseGeneric<long>();
 
-        // await _saleRepository.CreateTransaction();
-
         var entity = _mapper.Map<Sale>(request);
 
-        var customer = await _customerRepository.GetByEmailAsync(email);
+        var customer = await _context.Set<Customer>()
+            .AsNoTracking()
+            .FirstOrDefaultAsync(p => p.Email == email);
 
         if (customer is null)
             throw new InvalidOperationException($"No se encontre el usuario con ese email {email}");
 
-        // if (customer is null)
-        // {
-        //     //vamos a crear en esta misma operacion el registro de customer
-        //     customer = new Customer
-        //     {
-        //         Email = request.Email,
-        //         FullName = request.FullName
-        //     };
-        //     
-        //     //Esto es cuando esperamos a que el registro se grabe primero para obtener el id creado de la base de datos
-        //     customer.Id = await _customerRepository.AddAsync(customer);
-        //
-        // }
-
         entity.CustomerId = customer.Id;
 
-        //entity.Customer = customer;
-
-        var concert = await _concertRepository.FindByIdAsync(request.ConcertId);
+        var concert = await _context.Set<Concert>().FindAsync(request.ConcertId);
 
         if (concert is null)
             throw new InvalidOperationException($"No se encontro el concierto con el ID {request.ConcertId}");
 
         entity.Total = entity.Quantity * concert.UnitPrice;
 
-        response.Data = await _saleRepository.AddAsync(entity);
-        await _unitOfWork.SaveChangesAsync();
+        // Sale numbering logic from repository
+        entity.SaleDate = DateTime.Now;
+        var lastNumber = await _context.Set<Sale>().CountAsync() + 1;
+        entity.OperationNumber = $"{lastNumber:00000}";
 
+        await _context.Set<Sale>().AddAsync(entity);
+        await _context.SaveChangesAsync();
+
+        response.Data = entity.Id;
         response.Success = true;
 
         return response;
@@ -84,13 +69,24 @@ public class SaleService : ISaleService
 
         Expression<Func<Sale, bool>> predicate = p => p.SaleDate >= dateStart && p.SaleDate <= end;
 
-        var tuple = await _saleRepository.ListAsync(predicate,
-            p => _mapper.Map<SaleDtoResponse>(p),
-            x => x.OperationNumber,
-            page, rows);
+        var query = _context.Set<Sale>()
+            .Include(p => p.Concert)
+            .ThenInclude(p => p.Genre)
+            .Include(p => p.Customer)
+            .Where(predicate);
 
-        response.Data = tuple.Collection;
-        response.TotalPages = Utilities.GetTotalPages(tuple.Total, rows);
+        var collection = await query
+            .OrderBy(x => x.OperationNumber)
+            .Skip((page - 1) * rows)
+            .Take(rows)
+            .AsNoTracking()
+            .Select(p => _mapper.Map<SaleDtoResponse>(p))
+            .ToListAsync();
+
+        var total = await query.CountAsync();
+
+        response.Data = collection;
+        response.TotalPages = Utilities.GetTotalPages(total, rows);
 
         response.Success = true;
 
@@ -104,13 +100,24 @@ public class SaleService : ISaleService
         Expression<Func<Sale, bool>> predicate = p =>
             p.Customer.Email.Equals(email) && p.Concert.Title.Contains(filter ?? string.Empty);
 
-        var tuple = await _saleRepository.ListAsync(predicate,
-            p => _mapper.Map<SaleDtoResponse>(p),
-            x => x.OperationNumber,
-            page, rows);
+        var query = _context.Set<Sale>()
+            .Include(p => p.Concert)
+            .ThenInclude(p => p.Genre)
+            .Include(p => p.Customer)
+            .Where(predicate);
 
-        response.Data = tuple.Collection;
-        response.TotalPages = Utils.Utilities.GetTotalPages(tuple.Total, rows);
+        var collection = await query
+            .OrderBy(x => x.OperationNumber)
+            .Skip((page - 1) * rows)
+            .Take(rows)
+            .AsNoTracking()
+            .Select(p => _mapper.Map<SaleDtoResponse>(p))
+            .ToListAsync();
+
+        var total = await query.CountAsync();
+
+        response.Data = collection;
+        response.TotalPages = Utils.Utilities.GetTotalPages(total, rows);
 
         response.Success = true;
 
@@ -122,7 +129,13 @@ public class SaleService : ISaleService
     {
         var response = new BaseResponseGeneric<SaleDtoResponse>();
 
-        var sale = await _saleRepository.FindByIdAsync(id);
+        var sale = await _context.Set<Sale>()
+            .Include(p => p.Concert)
+            .ThenInclude(p => p.Genre)
+            .Include(p => p.Customer)
+            .Where(p => p.Id == id)
+            .AsNoTracking()
+            .FirstOrDefaultAsync();
 
         if (sale == null)
             throw new Exception("Venta no existe");
@@ -137,7 +150,10 @@ public class SaleService : ISaleService
     {
         var response = new BaseResponseGeneric<ICollection<ReportDtoResponse>>();
 
-        var list = await _saleRepository.GetReportSaleAsync(dateStart, dateEnd);
+        var list = await _context.Set<ReportInfo>()
+            .FromSqlRaw("Exec uspReportSales {0}, {1}", dateStart, dateEnd)
+            .ToListAsync();
+
         response.Data = list.Select(p => _mapper.Map<ReportDtoResponse>(p)).ToList();
         response.Success = true;
 

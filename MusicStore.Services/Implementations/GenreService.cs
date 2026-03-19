@@ -1,10 +1,10 @@
 ﻿using AutoMapper;
-using Azure;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using MusicStore.DataAccess;
 using MusicStore.Dto.Request;
 using MusicStore.Dto.Response;
 using MusicStore.Entities;
-using MusicStore.Repositories.Interfaces;
 using MusicStore.Services.Interfaces;
 using MusicStore.Services.Utils;
 
@@ -12,24 +12,25 @@ namespace MusicStore.Services.Implementations;
 
 public class GenreService : IGenreService
 {
-    private readonly IGenreRepository _repository;
+    private readonly MusicStoreDbContext _context;
     private readonly ILogger<GenreService> _logger;
     private readonly IMapper _mapper;
-    private readonly IUnitOfWork _unitOfWork;
 
-    public GenreService(IGenreRepository repository, ILogger<GenreService> logger, IMapper mapper, IUnitOfWork unitOfWork)
+    public GenreService(MusicStoreDbContext context, ILogger<GenreService> logger, IMapper mapper)
     {
-        _repository = repository;
+        _context = context;
         _logger = logger;
         _mapper = mapper;
-        _unitOfWork = unitOfWork;
     }
 
     public async Task<BaseResponseGeneric<ICollection<GenreDtoResponse>>> ListAsync()
     {
         var response = new BaseResponseGeneric<ICollection<GenreDtoResponse>>();
 
-        var collection = await _repository.ListAsync(x => x.Status);
+        var collection = await _context.Set<Genre>()
+            .Where(x => x.Status)
+            .AsNoTracking()
+            .ToListAsync();
 
         response.Data = _mapper.Map<ICollection<GenreDtoResponse>>(collection);
         response.Success = true;
@@ -41,7 +42,7 @@ public class GenreService : IGenreService
     {
         var response = new BaseResponseGeneric<GenreDtoResponse>();
 
-        var entity = await _repository.FindByIdAsync(id);
+        var entity = await _context.Set<Genre>().FindAsync(id);
 
         if (entity == null)
         {
@@ -60,8 +61,11 @@ public class GenreService : IGenreService
     {
         var response = new BaseResponseGeneric<long>();
 
-        response.Data = await _repository.AddAsync(_mapper.Map<Genre>(request));
-        await _unitOfWork.SaveChangesAsync();
+        var entity = _mapper.Map<Genre>(request);
+        await _context.Set<Genre>().AddAsync(entity);
+        await _context.SaveChangesAsync();
+
+        response.Data = entity.Id;
         response.Success = true;
 
         return response;
@@ -71,7 +75,7 @@ public class GenreService : IGenreService
     {
         var response = new BaseResponse();
 
-        var entity = await _repository.FindByIdAsync(id);
+        var entity = await _context.Set<Genre>().FindAsync(id);
 
         if (entity == null)
         {
@@ -81,8 +85,7 @@ public class GenreService : IGenreService
         }
 
         _mapper.Map(request, entity);
-        await _repository.UpdateAsync();
-        await _unitOfWork.SaveChangesAsync();
+        await _context.SaveChangesAsync();
         response.Success = true;
 
         return response;
@@ -92,8 +95,18 @@ public class GenreService : IGenreService
     {
         var response = new BaseResponse();
 
-        await _repository.DeleteAsync(id);
-        await _unitOfWork.SaveChangesAsync();
+        var entity = await _context.Set<Genre>().FindAsync(id);
+
+        if (entity != null)
+        {
+            entity.Status = false;
+            await _context.SaveChangesAsync();
+        }
+        else
+        {
+            throw new InvalidOperationException($"No se encontro el registro con el Id {id}");
+        }
+
         response.Success = true;
 
         return response;
