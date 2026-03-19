@@ -27,10 +27,10 @@ public class SalesController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> Post(SaleDtoRequest request)
     {
-        var email = HttpContext.User.Identity.Name;
-        _logger.LogInformation("Autenticado como  {Email}",email);
-        _logger.LogInformation("El token vencera el dia {Value}", HttpContext.User.Claims.First(p => p.Type == ClaimTypes.Expiration).Value);
-        
+        var email = HttpContext.User.Identity?.Name ?? "unknown";
+        _logger.LogInformation("Autenticado como  {Email}", email);
+        _logger.LogInformation("El token vencera el dia {Value}", HttpContext.User.Claims.FirstOrDefault(p => p.Type == ClaimTypes.Expiration)?.Value ?? "N/A");
+
         var response = await _service.AddAsync(email, request);
         return response.Success ? Ok(response) : BadRequest(response);
     }
@@ -52,8 +52,8 @@ public class SalesController : ControllerBase
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex,"Error en conversion de formato de fecha {message}", ex.Message);
-            return BadRequest(new BaseResponse { ErrorMessage = "Error conversion de fecha"});
+            _logger.LogWarning(ex, "Error en conversion de formato de fecha {message}", ex.Message);
+            return BadRequest(new BaseResponse { ErrorMessage = "Error conversion de fecha" });
 
         }
     }
@@ -61,16 +61,16 @@ public class SalesController : ControllerBase
     [HttpGet("ListSale")]
     public async Task<IActionResult> GetListSales(string? filter, int page = 1, int rows = 10)
     {
-        var email = HttpContext.User.FindFirst(ClaimTypes.Email)!.Value;
+        var email = HttpContext.User.FindFirst(ClaimTypes.Email)?.Value ?? "unknown";
         var response = await _service.ListAsync(email, filter, page, rows);
         return response.Success ? Ok(response) : BadRequest(response);
     }
-    
+
     [HttpGet("{id:long}")]
     public async Task<IActionResult> GetSaleAsync(long id)
     {
         var response = await _service.GetSaleAsync(id);
         return response.Success ? Ok(response) : NotFound(response);
     }
-    
+
 }

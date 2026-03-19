@@ -6,7 +6,8 @@ using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using Microsoft.OpenApi.Models;
+using Microsoft.OpenApi;
+using Microsoft.AspNetCore.OpenApi;
 using FluentValidation;
 using FluentValidation.AspNetCore;
 using MusicStore.Api.Endpoints;
@@ -86,33 +87,34 @@ builder.Services.AddIdentity<MusicStoreUserIdentity, IdentityRole>(policies =>
 builder.Services.AddControllers();
 builder.Services.AddFluentValidationAutoValidation();
 builder.Services.AddValidatorsFromAssemblyContaining<GenreDtoRequestValidator>();
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen(c =>
+// builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddOpenApi(options =>
 {
-    c.SwaggerDoc("v1", new OpenApiInfo() { Title = "Music Store API", Version = "v1" });
-    c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    options.AddDocumentTransformer((document, context, cancellationToken) =>
     {
-        Description = "Autenticacion por JWT usando como ejemplo en el Header: Authorizacion: Bearer {token}",
-        Name = "Authorization",
-        Type = SecuritySchemeType.Http,
-        Scheme = "bearer",
-        BearerFormat = "JWT"
-    });
-
-    c.AddSecurityRequirement(new OpenApiSecurityRequirement
-    {
+        document.Info = new OpenApiInfo
         {
-            new OpenApiSecurityScheme
-            {
-                Reference = new OpenApiReference
-                {
-                    Type = ReferenceType.SecurityScheme,
-                    Id = "Bearer"
-                }
-            },
-            Array.Empty<string>()
-        }
+            Title = "Music Store API",
+            Version = "v1"
+        };
+
+        document.Components ??= new OpenApiComponents();
+        document.Components!.SecuritySchemes.Add("Bearer", new OpenApiSecurityScheme
+        {
+            Description = "Autenticacion por JWT usando como ejemplo en el Header: Authorizacion: Bearer {token}",
+            Name = "Authorization",
+            Type = SecuritySchemeType.Http,
+            Scheme = "bearer",
+            BearerFormat = "JWT"
+        });
+
+        document.Security ??= new List<OpenApiSecurityRequirement>();
+        document.Security.Add(new OpenApiSecurityRequirement
+        {
+            [new Microsoft.OpenApi.OpenApiSecuritySchemeReference("Bearer", document)] = new List<string>()
+        });
+
+        return Task.CompletedTask;
     });
 });
 
@@ -165,8 +167,9 @@ var app = builder.Build();
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
-    app.UseSwagger();
-    app.UseSwaggerUI();
+    app.MapOpenApi();
+    // app.UseSwagger();
+    // app.UseSwaggerUI();
 }
 
 app.UseHttpsRedirection();
@@ -186,11 +189,11 @@ app.MapReports();
 app.MapPost("Sales",
     async (ISaleService service, HttpContext context, ILogger<Program> logger, SaleDtoRequest request) =>
     {
-        var email = context.User.Identity.Name;
+        var email = context.User.Identity?.Name ?? "unknown";
 
-        logger.LogInformation("Autenticado como {Name}", context.User.Identity.Name);
+        logger.LogInformation("Autenticado como {Name}", email);
         logger.LogInformation("El token vencera el dia {Date}",
-            context.User.Claims.First(p => p.Type == ClaimTypes.Expiration).Value);
+            context.User.Claims.FirstOrDefault(p => p.Type == ClaimTypes.Expiration)?.Value ?? "N/A");
 
         var response = await service.AddAsync(email, request);
         return response.Success ? Results.Ok(response) : Results.BadRequest(response);
