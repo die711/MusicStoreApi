@@ -20,7 +20,6 @@ public static class HomeEndpoints
                     Genres = genres,
                     Success = true
                 });
-            }).WithDescription("Permite mostrar los endpoints de la pagina principal")
-            .WithOpenApi();
+            }).WithDescription("Permite mostrar los endpoints de la pagina principal");
     }
 }

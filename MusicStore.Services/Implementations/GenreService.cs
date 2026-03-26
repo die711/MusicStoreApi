@@ -104,7 +104,7 @@ public class GenreService : IGenreService
         }
         else
         {
-            throw new InvalidOperationException($"No se encontro el registro con el Id {id}");
+            return new BaseResponse { Success = false, ErrorMessage = $"No se encontro el registro con el Id {id}" };
         }
 
         response.Success = true;

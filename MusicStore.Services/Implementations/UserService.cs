@@ -44,11 +44,14 @@ public class UserService : IUserService
         var identity = await _userManager.FindByEmailAsync(request.UserName);
 
         if (identity == null)
-            throw new SecurityException("Usuario no existe");
+            return new LoginDtoResponse { Success = false, ErrorMessage = "Usuario no existe" };
 
         if (await _userManager.IsLockedOutAsync(identity))
-            throw new SecurityException(
-                $"Demasiados intentos fallidos para el usuario {identity.UserName}, reintente mas tarde");
+            return new LoginDtoResponse
+            {
+                Success = false,
+                ErrorMessage = $"Demasiados intentos fallidos para el usuario {identity.UserName}, reintente mas tarde"
+            };
 
         var result = await _userManager.CheckPasswordAsync(identity, request.Password);
         if (!result)
@@ -171,7 +174,7 @@ public class UserService : IUserService
         var userIdentity = await _userManager.FindByEmailAsync(request.Email);
 
         if (userIdentity is null)
-            throw new ApplicationException("Usuario no existe");
+            return new BaseResponse { Success = false, ErrorMessage = "Usuario no existe" };
 
         var token = await _userManager.GeneratePasswordResetTokenAsync(userIdentity);
 
@@ -193,7 +196,7 @@ public class UserService : IUserService
         var userIdentity = await _userManager.FindByEmailAsync(request.Email);
 
         if (userIdentity is null)
-            throw new ApplicationException("Usuario no existe");
+            return new BaseResponse { Success = false, ErrorMessage = "Usuario no existe" };
 
         var result = await _userManager.ResetPasswordAsync(userIdentity, request.Token, request.NewPassword);
 
@@ -222,7 +225,7 @@ public class UserService : IUserService
 
         var userIdentity = await _userManager.FindByEmailAsync(request.Email);
         if (userIdentity == null)
-            throw new ApplicationException("Usuario no existe");
+            return new BaseResponse { Success = false, ErrorMessage = "Usuario no existe" };
 
         var result = await _userManager.ChangePasswordAsync(userIdentity, request.OldPassword, request.NewPassword);
         response.Success = result.Succeeded;

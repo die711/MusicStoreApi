@@ -34,31 +34,31 @@ public class ConcertsController : ControllerBase
     public async Task<IActionResult> Post(ConcertDtoRequest request)
     {
         var response = await _service.AddAsync(request);
-        return CreatedAtAction(nameof(FindById), new
+        return response.Success ? CreatedAtAction(nameof(FindById), new
         {
             id = response.Data,
-        }, response);
+        }, response) : BadRequest(response);
     }
 
     [HttpPut("{id:long}")]
     public async Task<IActionResult> Put(long id, ConcertDtoRequest request)
     {
         var response = await _service.UpdateAsync(id, request);
-        return Ok(response);
+        return response.Success ? Ok(response) : BadRequest(response);
     }
 
     [HttpDelete("{id:long}")]
     public async Task<IActionResult> Delete(long id)
     {
         var response = await _service.DeleteAsync(id);
-        return Ok(response);
+        return response.Success ? Ok(response) : BadRequest(response);
     }
 
     [HttpPatch("{id:long}")]
     public async Task<IActionResult> Patch(long id)
     {
         var response = await _service.FinalizeAsync(id);
-        return Ok(response);
+        return response.Success ? Ok(response) : BadRequest(response);
     }
 
 

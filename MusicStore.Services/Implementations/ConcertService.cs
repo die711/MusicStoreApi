@@ -120,7 +120,7 @@ public class ConcertService : IConcertService
         }
         else
         {
-            throw new InvalidOperationException($"No se encontro el registro con el Id {id}");
+            return new BaseResponse { Success = false, ErrorMessage = $"No se encontro el registro con el Id {id}" };
         }
         response.Success = true;
 
@@ -139,7 +139,7 @@ public class ConcertService : IConcertService
         }
         else
         {
-            throw new InvalidOperationException($"Unable to finalize entity {id}");
+            return new BaseResponse { Success = false, ErrorMessage = $"Unable to finalize entity {id}" };
         }
         response.Success = true;
 

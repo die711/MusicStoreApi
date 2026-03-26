@@ -36,14 +36,14 @@ public class SaleService : ISaleService
             .FirstOrDefaultAsync(p => p.Email == email);
 
         if (customer is null)
-            throw new InvalidOperationException($"No se encontre el usuario con ese email {email}");
+            return new BaseResponseGeneric<long> { Success = false, ErrorMessage = $"No se encontre el usuario con ese email {email}" };
 
         entity.CustomerId = customer.Id;
 
         var concert = await _context.Set<Concert>().FindAsync(request.ConcertId);
 
         if (concert is null)
-            throw new InvalidOperationException($"No se encontro el concierto con el ID {request.ConcertId}");
+            return new BaseResponseGeneric<long> { Success = false, ErrorMessage = $"No se encontro el concierto con el ID {request.ConcertId}" };
 
         entity.Total = entity.Quantity * concert.UnitPrice;
 
@@ -138,7 +138,7 @@ public class SaleService : ISaleService
             .FirstOrDefaultAsync();
 
         if (sale == null)
-            throw new Exception("Venta no existe");
+            return new BaseResponseGeneric<SaleDtoResponse> { Success = false, ErrorMessage = "Venta no existe" };
 
         response.Data = _mapper.Map<SaleDtoResponse>(sale);
         response.Success = true;

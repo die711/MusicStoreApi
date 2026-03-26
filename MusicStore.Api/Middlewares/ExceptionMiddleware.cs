@@ -39,7 +39,7 @@ public class ExceptionMiddleware
         {
             Status = StatusCodes.Status500InternalServerError,
             Title = "Ocurrió un error interno en el servidor",
-            Detail = exception.Message // TODO: In production, do not expose raw exception messages
+            Detail = "Se ha producido un error inesperado. Por favor contacte con soporte técnico o revise los logs."
         };
 
         var result = JsonSerializer.Serialize(problemDetails);

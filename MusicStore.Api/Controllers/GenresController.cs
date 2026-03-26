@@ -37,22 +37,24 @@ public class GenresController : ControllerBase
     public async Task<IActionResult> Add(GenreDtoRequest request)
     {
         var response = await _service.AddAsync(request);
-        return CreatedAtAction(nameof(GetById), new
+        return response.Success ? CreatedAtAction(nameof(GetById), new
         {
             id = response.Data,
-        }, response);
+        }, response) : BadRequest(response);
     }
 
     [HttpPut("{id:long}")]
     public async Task<IActionResult> UpdateAsync(long id, GenreDtoRequest request)
     {
-        return Ok(await _service.UpdateAsync(id, request));
+        var response = await _service.UpdateAsync(id, request);
+        return response.Success ? Ok(response) : BadRequest(response);
     }
 
     [HttpDelete("{id:long}")]
     public async Task<IActionResult> Delete(long id)
     {
-        return Ok(await _service.DeleteAsync(id));
+        var response = await _service.DeleteAsync(id);
+        return response.Success ? Ok(response) : BadRequest(response);
     }
 
 
